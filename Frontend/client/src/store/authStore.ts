@@ -5,8 +5,8 @@ import { authService } from '../services/auth.service';
 interface AuthState {
   user: UserProfile | null;
   isLoading: boolean;
-  login: (email: string, role?: 'user' | 'admin') => Promise<void>;
-  register: (data: { first_name: string; last_name: string; email: string }) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<void>;
   logout: () => Promise<void>;
   initAuth: () => Promise<void>;
 }
@@ -14,8 +14,8 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: true,
-  login: async (email, role = 'user') => {
-    const user = await authService.login(email, role);
+  login: async (email, password) => {
+    const user = await authService.login(email, password);
     set({ user });
   },
   register: async (data) => {
