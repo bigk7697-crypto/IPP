@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.production
+*.log
+.DS_Store
+.supabase/
+Backend/dist/
+Frontend/client/dist/
+Frontend/admin/dist/
+Frontend/client/node_modules/
+Frontend/admin/node_modules/
+supabase/.temp/
+Backend/supabase/.temp/
+docs/
+hex.txt
+start-dev.js

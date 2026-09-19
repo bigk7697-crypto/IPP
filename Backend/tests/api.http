@@ -1,0 +1,50 @@
+# Exemples testables avec l'extension VS Code "REST Client".
+# Remplace @token par un JWT Supabase (via le front) pour les routes auth.
+@api = http://localhost:4000/api
+
+### Health
+GET {{api}}/health
+
+### News publiques
+GET {{api}}/news?page=1&limit=5
+
+### Classes
+GET {{api}}/classes
+
+### Settings école
+GET {{api}}/settings
+
+### Albums galerie
+GET {{api}}/gallery/albums
+
+### Mon profil (auth requise)
+GET {{api}}/profile
+Authorization: Bearer @token
+
+### Mes notifications (auth requise)
+GET {{api}}/notifications
+Authorization: Bearer @token
+
+### Tout marquer lu — AVANT /:id/read
+PATCH {{api}}/notifications/read-all
+Authorization: Bearer @token
+
+### Résultat d'une classe (auth → downloadUrl signée)
+GET {{api}}/results/33333333-3333-3333-3333-333333333333
+Authorization: Bearer @token
+
+### Admin — liste news avec drafts (role=admin requis)
+GET {{api}}/admin/news
+Authorization: Bearer @token
+
+### Admin — créer une news (publie + notif auto si published)
+POST {{api}}/admin/news
+Authorization: Bearer @token
+Content-Type: application/json
+
+{
+  "title": "Réunion des parents",
+  "slug": "reunion-parents",
+  "content": "La réunion aura lieu le 20 octobre 2026.",
+  "status": "published"
+}
