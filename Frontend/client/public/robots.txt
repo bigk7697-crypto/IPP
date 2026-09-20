@@ -1,0 +1,2 @@
+User-agent: *
+Disallow: /IPP/direction/

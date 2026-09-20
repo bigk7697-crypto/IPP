@@ -2,11 +2,13 @@ import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { requireMfa } from '../middleware/requireMfa.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
+import { adminLimiter } from '../middleware/rateLimit.js';
 import { newsPatchSchema, newsSchema } from '../validators/news.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, adminLimiter, requireAdmin, requireMfa);
 
 // POST /api/admin/news — publier → trigger DB crée les notifs auto
 router.post('/', async (req, res, next) => {

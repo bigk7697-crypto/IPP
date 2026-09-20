@@ -2,9 +2,15 @@ import { UserProfile } from '../types';
 import { supabase } from './supabaseClient';
 import { apiFetch } from './apiClient';
 
+const captchaToken = () => (window as any).__hcaptchaToken as string | undefined;
+
 export const authService = {
   async login(email: string, password: string):Promise<UserProfile> {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken() ? { captchaToken: captchaToken() } : undefined,
+    });
     if (error) throw new Error(error.message);
     if (data.session) {
       localStorage.setItem('school_token', data.session.access_token);
@@ -23,7 +29,8 @@ export const authService = {
         data: {
           first_name: data.first_name,
           last_name: data.last_name
-        }
+        },
+        ...(captchaToken() ? { captchaToken: captchaToken() } : {}),
       }
     });
     if (error) throw new Error(error.message);

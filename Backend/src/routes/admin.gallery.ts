@@ -2,13 +2,15 @@ import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { requireMfa } from '../middleware/requireMfa.js';
+import { adminLimiter } from '../middleware/rateLimit.js';
 import { uploadImage } from '../middleware/upload.js';
 import { MIME, buildPublicImagePath } from '../utils/files.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
 import { albumPatchSchema, albumSchema, imageMetaSchema } from '../validators/gallery.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, adminLimiter, requireAdmin, requireMfa);
 
 // POST /api/admin/gallery/albums
 router.post('/albums', async (req, res, next) => {

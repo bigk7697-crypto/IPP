@@ -49,9 +49,9 @@ jobs:
       - name: Assemble Pages
         run: |
           rm -rf _site
-          mkdir -p _site/admin
+          mkdir -p _site/direction
           cp -r Frontend/client/dist/* _site/
-          cp -r Frontend/admin/dist/* _site/admin/
+          cp -r Frontend/admin/dist/* _site/direction/
           touch _site/.nojekyll
           # SPA fallback intelligent : /IPP/admin/* -> app admin, le reste -> app client
           # (GitHub Pages ne sert qu'un seul 404.html à la racine)
@@ -60,7 +60,7 @@ jobs:
           <html><head><meta charset="utf-8"><title>Redirection…</title>
           <script>
           (function(){
-            var base='/IPP', adminBase='/IPP/admin';
+            var base='/IPP', adminBase='/IPP/direction';
             var p=location.pathname, q=location.search, h=location.hash;
             if(p===adminBase||p===adminBase+'/'){location.replace(adminBase+'/'+q+h);return;}
             if(p.indexOf(adminBase+'/')===0){location.replace(adminBase+'/?p='+encodeURIComponent(p+q+h));return;}
@@ -69,12 +69,12 @@ jobs:
           })();
           </script></head><body>Redirection…</body></html>
           EOF
-          cp _site/admin/index.html _site/admin/404.html
+          cp _site/direction/index.html _site/direction/404.html
           # Restaure la sous-route (?p=) avant que React ne démarre (client + admin)
           python3 - <<'PYEOF'
           import io
           restore = '<script>(function(){var m=/[?&]p=([^&]*)/.exec(location.search);if(m){history.replaceState(null,"",decodeURIComponent(m[1]));}})();</script></head>'
-          for f in ['_site/index.html', '_site/admin/index.html']:
+          for f in ['_site/index.html', '_site/direction/index.html']:
               s = io.open(f, encoding='utf-8').read()
               if '?p=' not in s:
                   s = s.replace('</head>', restore, 1)

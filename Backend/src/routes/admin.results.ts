@@ -2,14 +2,16 @@ import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { requireMfa } from '../middleware/requireMfa.js';
 import { uploadResult } from '../middleware/upload.js';
 import { MIME, buildResultPath } from '../utils/files.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
+import { adminLimiter } from '../middleware/rateLimit.js';
 import { resultMetaSchema, resultPatchSchema } from '../validators/results.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, adminLimiter, requireAdmin, requireMfa);
 
 const metaSchema = resultMetaSchema;
 

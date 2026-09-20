@@ -9,6 +9,8 @@ export interface ApiError {
     | 'NOT_FOUND'
     | 'CONFLICT'
     | 'VALIDATION_ERROR'
+    | 'MFA_REQUIRED'
+    | 'RATE_LIMITED'
     | 'INTERNAL_ERROR';
   message: string;
   details?: unknown;

@@ -2,11 +2,12 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { getAnonClient, getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
+import { authLimiter } from '../middleware/rateLimit.js';
 
 const router = Router();
 
 // GET /api/auth/me — session + profil + rôle (source vérité DB)
-router.get('/me', auth, async (req, res, next) => {
+router.get('/me', authLimiter, auth, async (req, res, next) => {
   try {
     const svc = getServiceClient();
     const { data: profile } = await svc

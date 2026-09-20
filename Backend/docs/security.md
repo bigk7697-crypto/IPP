@@ -234,3 +234,11 @@ MIME.image    = ['image/jpeg','image/png','image/webp']
 | Storage public | n'hÃ©berger que `public-assets` ; vÃ©rifier `private-*` jamais `public` |
 | Tests sÃ©cu | couvrir `user â†’ /api/admin/* =403`, `user A â†’ notif B =0`, `visiteur â†’ results =401`, `user â†’ PATCH role = trigger error` (cf `cahier-des-charges Â§67`) |
 
+
+## 9. Durcissement espace admin (2026-09-20)
+
+- MFA TOTP obligatoire sur /api/admin/* : src/middleware/requireMfa.ts vérifie le claim JWT al === 'aal2' (token déjà validé par uth). Sans MFA -> 403 {code:'MFA_REQUIRED'}. Enrôlement via AdminLogin (QR + code).
+- Throttle : src/middleware/rateLimit.ts — dminLimiter 100 req/15min/IP sur /api/admin/*, uthLimiter 60 req/15min/IP sur /api/auth/me. Réponse 429 {code:'RATE_LIMITED'} + header Retry-After.
+- URL admin non listée : pas de lien public vers /IPP/direction/, Frontend/client/public/robots.txt en Disallow. Le repo étant public, l'obscurité ne remplace ni mot de passe fort ni MFA.
+- Captcha hCaptcha (à activer quand clés créées sur https://dashboard.hcaptcha.com) : frontend envoie options.captchaToken via window.__hcaptchaToken (déjà câblé uth.service.ts, AdminLogin.tsx), puis activer côté Supabase :
+  `PATCH /v1/projects/knmxosdfxxzjagqyhkcc/config/auth {"security_captcha_enabled":true,"security_captcha_provider":"hcaptcha","security_captcha_secret":"0x..."}` + `VITE_HCAPTCHA_SITEKEY` + widget react-hcaptcha.

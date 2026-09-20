@@ -2,14 +2,16 @@ import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
+import { requireMfa } from '../middleware/requireMfa.js';
 import { uploadDocument } from '../middleware/upload.js';
 import { MIME, buildDocumentPath } from '../utils/files.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
+import { adminLimiter } from '../middleware/rateLimit.js';
 import { documentMetaSchema, documentPatchSchema } from '../validators/documents.js';
 
 const router = Router();
-router.use(auth, requireAdmin);
+router.use(auth, adminLimiter, requireAdmin, requireMfa);
 
 // GET /api/admin/documents — liste admin (tous statuts, privés inclus)
 router.get('/', async (req, res, next) => {

@@ -13,7 +13,7 @@ import { AdminClasses } from './pages/AdminClasses';
 import { AdminSettings } from './pages/AdminSettings';
 
 export function App() {
-  const basename = import.meta.env.PROD ? '/IPP/admin' : undefined;
+  const basename = import.meta.env.PROD ? '/IPP/direction' : undefined;
   return (
     <BrowserRouter basename={basename}>
       <Routes>
