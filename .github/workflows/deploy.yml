@@ -32,7 +32,7 @@ jobs:
           npm install
           npm run build
         env:
-          VITE_API_URL: https://ipp-backend.onrender.com/api
+          VITE_API_URL: https://ipp-2mdf.onrender.com/api
           VITE_SUPABASE_URL: https://knmxosdfxxzjagqyhkcc.supabase.co
           VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXhvc2RmeHh6amFncXloa2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NjIzODIsImV4cCI6MjEwNTMzODM4Mn0.ntWtzeHibJRUpqWZIWREz6yk555xKrGPH28fu3acIKg
           VITE_USE_MOCK: "false"
@@ -42,7 +42,7 @@ jobs:
           npm install
           npm run build
         env:
-          VITE_API_URL: https://ipp-backend.onrender.com/api
+          VITE_API_URL: https://ipp-2mdf.onrender.com/api
           VITE_SUPABASE_URL: https://knmxosdfxxzjagqyhkcc.supabase.co
           VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXhvc2RmeHh6amFncXloa2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NjIzODIsImV4cCI6MjEwNTMzODM4Mn0.ntWtzeHibJRUpqWZIWREz6yk555xKrGPH28fu3acIKg
           VITE_USE_MOCK: "false"
