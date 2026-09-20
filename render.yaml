@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: ipp-backend
+    env: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://bigk7697-crypto.github.io,https://bigk7697-crypto.github.io/IPP,https://bigk7697-crypto.github.io/IPP/admin,https://ipp-lapaix.edu,https://www.ipp-lapaix.edu,http://localhost:5173
+      - key: JWT_SECRET
+        sync: false

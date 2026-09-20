@@ -15,3 +15,6 @@ Backend/supabase/.temp/
 docs/
 hex.txt
 start-dev.js
+
+.env.import
+.env.production.import
