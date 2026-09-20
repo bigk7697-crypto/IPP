@@ -12,19 +12,38 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({ result, onClose 
   const [searchQuery, setSearchQuery] = useState('');
   const [downloading, setDownloading] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [loadingUrl, setLoadingUrl] = useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+    async function loadUrl() {
+      setLoadingUrl(true);
+      try {
+        const res = await resultService.getResultsByClass(result!.class_id);
+        if (mounted && res?.downloadUrl) setDownloadUrl(res.downloadUrl);
+      } catch {}
+      if (mounted) setLoadingUrl(false);
+    }
+    if (result) loadUrl();
+    return () => { mounted = false; };
+  }, [result?.class_id]);
 
   if (!result) return null;
+
+  const isPdf = (result.file_name || '').toLowerCase().endsWith('.pdf');
+  const isExcel = (result.file_name || '').toLowerCase().match(/\.xlsx?$/) !== null;
 
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      const res = await resultService.getResultsByClass(result.class_id);
-      if (res && res.downloadUrl) {
-        window.open(res.downloadUrl, '_blank');
+      const url = downloadUrl || (await resultService.getResultsByClass(result.class_id))?.downloadUrl;
+      if (url) {
+        window.open(url, '_blank');
         setDownloadSuccess(true);
         setTimeout(() => setDownloadSuccess(false), 4000);
       } else {
-        alert('Téléchargement direct simulé pour : ' + result.file_name);
+        alert('Fichier introuvable : ' + (result.file_name || result.file_path));
       }
     } catch {
       alert('Impossible d’obtenir l’URL signée du stockage sécurisé.');
@@ -92,57 +111,57 @@ export const PDFViewerModal: React.FC<PDFViewerModalProps> = ({ result, onClose 
           </div>
         )}
 
-        {/* Document Simulated Viewer Area */}
-        <div className="p-8 overflow-y-auto flex-1 bg-slate-50 font-mono text-xs sm:text-sm text-slate-800">
-          <div className="bg-white p-8 rounded-xl shadow-inner border border-slate-200 space-y-6">
-            <div className="text-center border-b border-slate-200 pb-6">
-              <h1 className="font-bold text-lg text-slate-900 uppercase">RÉPUBLIQUE — INSTITUT POLYTECHNIQUE LA PAIX (IPP)</h1>
-              <p className="font-bold text-base text-brand-900 mt-1">DIRECTION DES ÉTUDES ET DES EXAMENS</p>
-              <p className="text-slate-500 mt-1">PROCES-VERBAL OFFICIEL — {result.result_type.toUpperCase()} ({result.academic_year})</p>
-              <p className="text-slate-700 font-semibold mt-2">CLASSE : {result.class_name}</p>
+        {/* Document Viewer — fichier réel depuis Storage privé */}
+        <div className="p-4 overflow-y-auto flex-1 bg-slate-50">
+          {loadingUrl ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <div className="w-8 h-8 border-4 border-brand-900 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-slate-500">Chargement du document sécurisé...</p>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-300 text-slate-600">
-                    <th className="py-2 px-3">Rang</th>
-                    <th className="py-2 px-3">Nom et Prénoms</th>
-                    <th className="py-2 px-3">Moyenne Générale</th>
-                    <th className="py-2 px-3">Mention</th>
-                    <th className="py-2 px-3">Décision</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr className={searchQuery && 'Dupont'.toLowerCase().includes(searchQuery.toLowerCase()) ? 'bg-yellow-50' : ''}>
-                    <td className="py-4 px-3 font-bold">1</td>
-                    <td className="py-4 px-3 font-semibold">DUPONT Jean</td>
-                    <td className="py-4 px-3">16.85 / 20</td>
-                    <td className="py-4 px-3 text-emerald-700 font-semibold">Très Bien</td>
-                    <td className="py-4 px-3 text-emerald-600">Admis(e)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-3 font-bold">2</td>
-                    <td className="py-4 px-3 font-semibold">KANE Aminata</td>
-                    <td className="py-4 px-3">16.40 / 20</td>
-                    <td className="py-4 px-3 text-emerald-700 font-semibold">Très Bien</td>
-                    <td className="py-4 px-3 text-emerald-600">Admis(e)</td>
-                  </tr>
-                  <tr>
-                    <td className="py-4 px-3 font-bold">3</td>
-                    <td className="py-4 px-3 font-semibold">KOFFI Kouassi</td>
-                    <td className="py-4 px-3">15.20 / 20</td>
-                    <td className="py-4 px-3 text-brand-700 font-semibold">Bien</td>
-                    <td className="py-4 px-3 text-emerald-600">Admis(e)</td>
-                  </tr>
-                </tbody>
-              </table>
+          ) : !downloadUrl ? (
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
+              <p className="text-sm text-slate-600">Impossible de charger le fichier. Vérifiez que le document a bien été uploadé.</p>
+              <p className="text-xs text-slate-400 mt-2">Fichier : {result.file_name || result.file_path}</p>
             </div>
-
-            <div className="pt-6 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-              <p>Document officiel certifié par signature cryptographique Supabase Storage.</p>
-              <p>Fichier : {result.file_name}</p>
+          ) : isPdf ? (
+            <div className="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+              <div className="bg-slate-900 text-white px-4 py-2 text-xs flex justify-between items-center">
+                <span>{result.file_name || 'document.pdf'}</span>
+                <span className="text-slate-400">{result.class_name} — {result.result_type}</span>
+              </div>
+              <iframe src={downloadUrl} title="Aperçu PDF" className="w-full h-[65vh] border-0" />
             </div>
+          ) : isExcel ? (
+            <div className="space-y-4">
+              <div className="bg-white p-6 rounded-xl border border-slate-200 text-center space-y-4">
+                <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto">
+                  <FileText className="w-8 h-8 text-emerald-600" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">{result.file_name || 'resultats.xlsx'}</h3>
+                  <p className="text-xs text-slate-500 mt-1">Fichier Excel — {result.class_name} — {result.result_type}</p>
+                </div>
+                <div className="flex justify-center gap-3">
+                  <button onClick={handleDownload} className="px-6 py-2.5 bg-brand-900 text-white rounded-xl text-sm font-semibold flex items-center gap-2">
+                    <Download className="w-4 h-4" /> Télécharger
+                  </button>
+                  <a href={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(downloadUrl)}`} target="_blank" rel="noopener noreferrer" className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold">Aperçu Office</a>
+                </div>
+                <p className="text-[11px] text-slate-400">Le fichier s'ouvre dans un nouvel onglet via URL signée temporaire (1h). Ne pas partager.</p>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <iframe src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(downloadUrl)}`} title="Aperçu Excel" className="w-full h-[60vh] border-0" />
+              </div>
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-xl border border-slate-200 text-center space-y-4">
+              <p className="text-sm text-slate-700">Fichier : <strong>{result.file_name || result.file_path}</strong></p>
+              <button onClick={handleDownload} className="px-6 py-2.5 bg-brand-900 text-white rounded-xl text-sm font-semibold">Télécharger</button>
+            </div>
+          )}
+          <div className="pt-4 flex justify-between items-center text-xs text-slate-500">
+            <span>Document certifié — Storage privé RLS</span>
+            <span>{result.file_name || result.file_path}</span>
           </div>
         </div>
       </div>
