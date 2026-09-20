@@ -52,9 +52,35 @@ jobs:
           mkdir -p _site/admin
           cp -r Frontend/client/dist/* _site/
           cp -r Frontend/admin/dist/* _site/admin/
-          cp _site/index.html _site/404.html
-          cp _site/admin/index.html _site/admin/404.html
           touch _site/.nojekyll
+          # SPA fallback intelligent : /IPP/admin/* -> app admin, le reste -> app client
+          # (GitHub Pages ne sert qu'un seul 404.html à la racine)
+          cat > _site/404.html <<'EOF'
+          <!doctype html>
+          <html><head><meta charset="utf-8"><title>Redirection…</title>
+          <script>
+          (function(){
+            var base='/IPP', adminBase='/IPP/admin';
+            var p=location.pathname, q=location.search, h=location.hash;
+            if(p===adminBase||p===adminBase+'/'){location.replace(adminBase+'/'+q+h);return;}
+            if(p.indexOf(adminBase+'/')===0){location.replace(adminBase+'/?p='+encodeURIComponent(p+q+h));return;}
+            if(p===base||p===base+'/'){location.replace(base+'/'+q+h);return;}
+            location.replace(base+'/?p='+encodeURIComponent(p+q+h));
+          })();
+          </script></head><body>Redirection…</body></html>
+          EOF
+          cp _site/admin/index.html _site/admin/404.html
+          # Restaure la sous-route (?p=) avant que React ne démarre (client + admin)
+          python3 - <<'PYEOF'
+          import io
+          restore = '<script>(function(){var m=/[?&]p=([^&]*)/.exec(location.search);if(m){history.replaceState(null,"",decodeURIComponent(m[1]));}})();</script></head>'
+          for f in ['_site/index.html', '_site/admin/index.html']:
+              s = io.open(f, encoding='utf-8').read()
+              if '?p=' not in s:
+                  s = s.replace('</head>', restore, 1)
+                  io.open(f, 'w', encoding='utf-8').write(s)
+                  print('patched', f)
+          PYEOF
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
