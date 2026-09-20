@@ -1,9 +1,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
-COPY package*.json ./
+COPY Backend/package*.json ./
 RUN npm ci
-COPY tsconfig.json ./
-COPY src ./src
+COPY Backend/tsconfig.json ./
+COPY Backend/src ./src
 RUN npm run build
 RUN npm prune --omit=dev
 
