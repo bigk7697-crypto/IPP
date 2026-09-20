@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { getAnonClient } from '../config/supabase.js';
-import { signedUrl } from '../services/storage.js';
+import { fileNameOf, signedUrl } from '../services/storage.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { escapeIlike, normalizeQuery } from '../utils/search.js';
 
@@ -70,7 +70,7 @@ router.get('/:id', async (req, res, next) => {
       });
       return;
     }
-    const url = await signedUrl(data.file_path, 3600);
+    const url = await signedUrl(data.file_path, 3600, fileNameOf(data.file_path));
     res.json({ success: true, data: { ...data, downloadUrl: url, expiresIn: 3600 } });
   } catch (e) {
     next(e);

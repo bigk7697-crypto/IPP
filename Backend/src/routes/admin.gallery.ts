@@ -5,7 +5,7 @@ import { requireAdmin } from '../middleware/requireAdmin.js';
 import { requireMfa } from '../middleware/requireMfa.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
 import { uploadImage } from '../middleware/upload.js';
-import { MIME, buildPublicImagePath } from '../utils/files.js';
+import { MIME, assertFileSignature, buildPublicImagePath } from '../utils/files.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
 import { albumPatchSchema, albumSchema, imageMetaSchema } from '../validators/gallery.js';
 
@@ -98,6 +98,15 @@ router.post('/albums/:id/images', uploadImage.single('image'), async (req, res, 
       res.status(422).json({
         success: false,
         error: { code: 'VALIDATION_ERROR', message: 'Image JPEG/PNG/WebP uniquement.' },
+      });
+      return;
+    }
+    try {
+      assertFileSignature(file.buffer, file.mimetype);
+    } catch (e: any) {
+      res.status(422).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: e.message || 'Contenu image invalide.' },
       });
       return;
     }

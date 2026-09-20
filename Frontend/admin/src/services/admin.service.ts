@@ -17,6 +17,18 @@ async function adminFetch<T>(endpoint: string, options?: RequestInit): Promise<T
   });
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
+    // 401 = session morte : purger TOUT (token + flag) et renvoyer au login.
+    // Note : 403 MFA_REQUIRED ne purge PAS (l'utilisateur est authentifié,
+    // il doit juste compléter la 2e étape).
+    if (response.status === 401 && token) {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      localStorage.removeItem('admin_logged');
+      const base = import.meta.env.BASE_URL || '/';
+      if (!window.location.pathname.endsWith('/login')) {
+        window.location.assign(`${base}login`);
+      }
+    }
     const msg = json?.error?.message || json?.error || `Erreur ${response.status}`;
     throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
   }

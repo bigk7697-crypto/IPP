@@ -15,7 +15,7 @@ http://localhost:4000/api
 
 ## Production
 ```text
-https://ipp-backend.onrender.com/api
+https://ipp-2mdf.onrender.com/api
 ```
 
 ---

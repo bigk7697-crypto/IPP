@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
 import { auth } from '../middleware/auth.js';
+import { fileNameOf, signedUrl } from '../services/storage.js';
+import { splitBucketPath } from '../utils/files.js';
 
 const router = Router();
 
@@ -25,14 +27,10 @@ router.get('/:classId', auth, async (req, res, next) => {
     }
 
     const latest = results[0];
-    const [bucket, ...rest] = latest.file_path.split('/');
-    const path = rest.join('/');
-    const { data: signed, error: signError } = await svc.storage
-      .from(bucket)
-      .createSignedUrl(path, 3600); // 1h
-    if (signError) throw signError;
+    splitBucketPath(latest.file_path); // valide le format (jette si invalide)
+    const url = await signedUrl(latest.file_path, 3600, fileNameOf(latest.file_path));
 
-    res.json({ success: true, data: { ...latest, downloadUrl: signed.signedUrl, expiresIn: 3600 } });
+    res.json({ success: true, data: { ...latest, downloadUrl: url, expiresIn: 3600 } });
   } catch (e) {
     next(e);
   }

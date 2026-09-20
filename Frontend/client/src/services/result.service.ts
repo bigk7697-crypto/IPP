@@ -16,23 +16,5 @@ export const resultService = {
       return { result, downloadUrl, expiresIn: expiresIn || 3600 };
     }
     return null;
-  },
-
-  async getAllResultsAdmin(): Promise<ResultItem[]> {
-    const remote = await apiFetch<ResultItem[]>('/admin/results');
-    return remote || [];
-  },
-
-  async uploadResult(data: Omit<ResultItem, 'id' | 'created_at' | 'published_at'>): Promise<ResultItem> {
-    const remote = await apiFetch<ResultItem>('/admin/results', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-    if (!remote) throw new Error('Échec d’upload du résultat via l’API');
-    return remote;
-  },
-
-  async deleteResult(id: string): Promise<void> {
-    await apiFetch(`/admin/results/${id}`, { method: 'DELETE' });
   }
 };

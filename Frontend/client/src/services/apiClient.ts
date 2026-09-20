@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-backend.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = localStorage.getItem('school_token');
@@ -15,9 +15,18 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
     headers,
   });
 
-  const json = await response.json();
+  const json = await response.json().catch(() => ({}));
 
   if (!response.ok) {
+    // Session expirée/révoquée : purger et forcer une reconnexion propre
+    // au lieu de laisser un token mort en localStorage.
+    if (response.status === 401 && token) {
+      localStorage.removeItem('school_token');
+      localStorage.removeItem('school_user');
+      if (!window.location.pathname.includes('/connexion')) {
+        window.location.assign('/connexion');
+      }
+    }
     throw new Error(json.error?.message || `Erreur API (${response.status})`);
   }
 

@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
+import { noteSuspicious } from './rateLimit.js';
 
 // Vérifie que le JWT Supabase a un niveau d'assurance aal2 (MFA TOTP vérifié).
 // À placer APRÈS auth + requireAdmin sur les routes /api/admin/*.
@@ -21,6 +22,7 @@ export function requireMfa(req: Request, res: Response, next: NextFunction) {
     const amr: Array<{ method?: string }> | undefined = payload.amr;
     const hasMfa = aal === 'aal2' || (Array.isArray(amr) && amr.some((m) => m?.method && m.method !== 'password'));
     if (!hasMfa) {
+      noteSuspicious(req, 'mfa_failed');
       res.status(403).json({
         success: false,
         error: {

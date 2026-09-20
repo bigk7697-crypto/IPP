@@ -18,10 +18,19 @@ export async function removeFile(fullPath: string) {
   await svc.storage.from(bucket).remove([path]);
 }
 
-export async function signedUrl(fullPath: string, expiresIn = 3600) {
+export async function signedUrl(fullPath: string, expiresIn = 3600, downloadName?: string) {
   const { bucket, path } = splitBucketPath(fullPath);
   const svc = getServiceClient();
-  const { data, error } = await svc.storage.from(bucket).createSignedUrl(path, expiresIn);
+  // downloadName => Content-Disposition: attachment : le navigateur télécharge
+  // au lieu d'exécuter un éventuel contenu actif inline (anti polyglotte PDF/JS).
+  const { data, error } = await svc.storage
+    .from(bucket)
+    .createSignedUrl(path, expiresIn, downloadName ? { download: downloadName } : undefined);
   if (error) throw error;
   return data.signedUrl;
+}
+
+export function fileNameOf(fullPath: string): string {
+  const parts = fullPath.split('/');
+  return parts[parts.length - 1] || 'document';
 }

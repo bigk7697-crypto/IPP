@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://knmxosdfxxzjagqyhkcc.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'public-anon-key';
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-backend.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
 export const AdminLayout: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);

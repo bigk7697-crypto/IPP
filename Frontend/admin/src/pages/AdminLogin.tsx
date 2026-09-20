@@ -12,7 +12,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/
 type Step = 'login' | 'enroll' | 'verify';
 
 export const AdminLogin: React.FC = () => {
-  const [email, setEmail] = useState('admin@ipp.tg');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,7 +30,10 @@ export const AdminLogin: React.FC = () => {
     const json = await res.json();
     const user = json.data || json;
     if (!user || user.role !== 'admin') {
-      throw new Error('Accès refusé : ce compte ne possède pas les privilèges administrateur.');
+      // Message volontairement identique au cas "identifiants invalides"
+      // pour ne pas permettre l'énumération de comptes.
+      await supabase.auth.signOut();
+      throw new Error('Identifiants invalides.');
     }
     localStorage.setItem('admin_token', token);
     localStorage.setItem('admin_user', JSON.stringify(user));
@@ -74,11 +77,13 @@ export const AdminLogin: React.FC = () => {
         password,
         options: captcha ? { captchaToken: captcha } : undefined,
       });
-      if (authErr) throw new Error(authErr.message);
-      if (!authData.session?.access_token) throw new Error('Session non établie');
+      // Oracle d'énumération : même message que ce soit un mauvais mot de passe
+      // ou un compte sans rôle admin (voir finishLogin).
+      // Les erreurs MFA/enroll de afterSignIn gardent leur message technique.
+      if (authErr || !authData.session?.access_token) throw new Error('Identifiants invalides.');
       await afterSignIn();
     } catch (err: any) {
-      setError(err.message || 'Identifiants administrateur invalides.');
+      setError(err.message || 'Identifiants invalides.');
     } finally {
       setLoading(false);
     }

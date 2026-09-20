@@ -4,7 +4,7 @@ import { auth } from '../middleware/auth.js';
 import { requireAdmin } from '../middleware/requireAdmin.js';
 import { requireMfa } from '../middleware/requireMfa.js';
 import { uploadDocument } from '../middleware/upload.js';
-import { MIME, buildDocumentPath } from '../utils/files.js';
+import { MIME, assertFileSignature, buildDocumentPath } from '../utils/files.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
@@ -55,6 +55,15 @@ router.post('/', uploadDocument.single('file'), async (req, res, next) => {
       res.status(422).json({
         success: false,
         error: { code: 'VALIDATION_ERROR', message: 'Type de fichier non autorisé.' },
+      });
+      return;
+    }
+    try {
+      assertFileSignature(file.buffer, file.mimetype);
+    } catch (e: any) {
+      res.status(422).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: e.message || 'Contenu du fichier invalide.' },
       });
       return;
     }

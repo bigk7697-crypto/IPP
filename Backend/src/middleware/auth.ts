@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { getAnonClient, getServiceClient } from '../config/supabase.js';
+import { noteSuspicious } from './rateLimit.js';
 import type { AuthUser } from '../types/index.js';
 
 declare global {
@@ -29,6 +30,7 @@ export async function auth(req: Request, res: Response, next: NextFunction) {
     const anon = getAnonClient(token);
     const { data, error } = await anon.auth.getUser(token);
     if (error || !data.user) {
+      noteSuspicious(req, 'bad_token');
       res.status(401).json({
         success: false,
         error: { code: 'UNAUTHORIZED', message: 'Session invalide ou expirée.' },
