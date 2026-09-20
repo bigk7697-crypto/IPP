@@ -9,6 +9,7 @@ import { removeFile, uploadBuffer } from '../services/storage.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
 import { resultMetaSchema, resultPatchSchema } from '../validators/results.js';
+import { pushOnPublish } from '../services/push.js';
 
 const router = Router();
 router.use(auth, adminLimiter, requireAdmin, requireMfa);
@@ -104,6 +105,14 @@ router.post('/', uploadResult.single('file'), async (req, res, next) => {
       await removeFile(fullPath).catch(() => {});
       throw error;
     }
+    if (data.status === 'published') {
+      pushOnPublish('results_enabled', {
+        title: `IPP — Nouveau résultat (${data.academic_year})`,
+        body: `${data.result_type} disponible`,
+        url: '/IPP/espace/resultats',
+        tag: `result-${data.id}`,
+      });
+    }
     res.status(201).json({ success: true, data });
   } catch (e) {
     next(e);
@@ -123,8 +132,8 @@ router.put('/:id', async (req, res, next) => {
     }
     const svc = getServiceClient();
     const payload: Record<string, unknown> = { ...parsed.data };
+    const { data: cur } = await svc.from('results').select('status').eq('id', req.params.id).single();
     if (parsed.data.status === 'published') {
-      const { data: cur } = await svc.from('results').select('status').eq('id', req.params.id).single();
       if (cur?.status !== 'published') payload.published_at = new Date().toISOString();
     }
     if (parsed.data.status === 'draft') payload.published_at = null;
@@ -135,6 +144,14 @@ router.put('/:id', async (req, res, next) => {
       .select()
       .single();
     if (error) throw error;
+    if (parsed.data.status === 'published' && cur?.status !== 'published') {
+      pushOnPublish('results_enabled', {
+        title: `IPP — Nouveau résultat (${data.academic_year})`,
+        body: `${data.result_type} disponible`,
+        url: '/IPP/espace/resultats',
+        tag: `result-${data.id}`,
+      });
+    }
     res.json({ success: true, data });
   } catch (e) {
     next(e);

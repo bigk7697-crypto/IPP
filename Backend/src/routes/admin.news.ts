@@ -6,6 +6,7 @@ import { requireMfa } from '../middleware/requireMfa.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
 import { newsPatchSchema, newsSchema } from '../validators/news.js';
+import { pushOnPublish } from '../services/push.js';
 
 const router = Router();
 router.use(auth, adminLimiter, requireAdmin, requireMfa);
@@ -33,6 +34,14 @@ router.post('/', async (req, res, next) => {
     };
     const { data, error } = await svc.from('news').insert(payload).select().single();
     if (error) throw error;
+    if (data.status === 'published') {
+      pushOnPublish('news_enabled', {
+        title: `IPP — ${data.title}`,
+        body: 'Nouvelle actualité publiée',
+        url: `/IPP/actualites/${data.id}`,
+        tag: `news-${data.id}`,
+      });
+    }
     res.status(201).json({ success: true, data });
   } catch (e) {
     next(e);
@@ -84,6 +93,14 @@ router.put('/:id', async (req, res, next) => {
       .select()
       .single();
     if (error) throw error;
+    if (parsed.data.status === 'published' && current?.status !== 'published') {
+      pushOnPublish('news_enabled', {
+        title: `IPP — ${data.title}`,
+        body: 'Nouvelle actualité publiée',
+        url: `/IPP/actualites/${data.id}`,
+        tag: `news-${data.id}`,
+      });
+    }
     res.json({ success: true, data });
   } catch (e) {
     next(e);

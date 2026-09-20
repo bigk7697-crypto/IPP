@@ -6,6 +6,7 @@ import { requireMfa } from '../middleware/requireMfa.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
 import { eventPatchSchema, eventSchema } from '../validators/events.js';
+import { pushOnPublish } from '../services/push.js';
 
 const router = Router();
 router.use(auth, adminLimiter, requireAdmin, requireMfa);
@@ -52,6 +53,14 @@ router.post('/', async (req, res, next) => {
       .select()
       .single();
     if (error) throw error;
+    if (data.status === 'published') {
+      pushOnPublish('events_enabled', {
+        title: `IPP — ${data.title}`,
+        body: 'Nouvel événement publié',
+        url: `/IPP/evenements/${data.id}`,
+        tag: `event-${data.id}`,
+      });
+    }
     res.status(201).json({ success: true, data });
   } catch (e) {
     next(e);
@@ -69,6 +78,7 @@ router.put('/:id', async (req, res, next) => {
       return;
     }
     const svc = getServiceClient();
+    const { data: current } = await svc.from('events').select('status').eq('id', req.params.id).single();
     const { data, error } = await svc
       .from('events')
       .update(parsed.data)
@@ -76,6 +86,14 @@ router.put('/:id', async (req, res, next) => {
       .select()
       .single();
     if (error) throw error;
+    if (parsed.data.status === 'published' && current?.status !== 'published') {
+      pushOnPublish('events_enabled', {
+        title: `IPP — ${data.title}`,
+        body: 'Nouvel événement publié',
+        url: `/IPP/evenements/${data.id}`,
+        tag: `event-${data.id}`,
+      });
+    }
     res.json({ success: true, data });
   } catch (e) {
     next(e);

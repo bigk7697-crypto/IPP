@@ -9,6 +9,8 @@ self.addEventListener('activate', (e) => {
 });
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
+  // Ne jamais cacher les appels API / Supabase / push
+  if (/\/api\/|supabase\.co|fcm\.googleapis|updates\.push\.services\.mozilla/.test(e.request.url)) return;
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
@@ -19,6 +21,38 @@ self.addEventListener('fetch', (e) => {
         }
         return res;
       }).catch(()=> cached);
+    })
+  );
+});
+
+// --- Web Push IPP (barre système Android / Windows / iOS installé) ---
+self.addEventListener('push', (e) => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch (_) { data = { body: e.data ? e.data.text() : '' }; }
+  const title = data.title || 'IPP La Paix';
+  const options = {
+    body: data.body || 'Nouvelle notification',
+    icon: data.icon || '/IPP/favicon.svg',
+    badge: data.badge || '/IPP/favicon.svg',
+    tag: data.tag || 'ipp',
+    renotify: true,
+    vibrate: data.vibrate || [200, 100, 200],
+    data: { url: data.url || '/IPP/' },
+  };
+  // Son custom si fourni (Android/Windows ; iOS joue le son système)
+  if (data.sound) options.sound = data.sound;
+  e.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/IPP/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const c of clients) {
+        if (c.url.includes('/IPP')) { c.navigate(url); return c.focus(); }
+      }
+      return self.clients.openWindow(url);
     })
   );
 });
