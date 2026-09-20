@@ -8,6 +8,9 @@ export const AdminGallery: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [uploadingId, setUploadingId] = useState<string | null>(null);
 
   useEffect(() => {
     loadAlbums();
@@ -20,15 +23,31 @@ export const AdminGallery: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await adminService.createAlbum({
-      title,
-      description,
-      cover_image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=800&q=80'
-    });
-    setTitle('');
-    setDescription('');
-    setIsCreating(false);
-    loadAlbums();
+    setError(''); setSuccess('');
+    try {
+      await adminService.createAlbum({ title, description });
+      setSuccess('Album créé !');
+      setTitle(''); setDescription(''); setIsCreating(false);
+      loadAlbums();
+    } catch (err: any) {
+      setError(err.message || 'Échec création');
+    }
+  };
+
+  const handleImageUpload = async (albumId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setError(''); setSuccess('');
+    setUploadingId(albumId);
+    try {
+      await adminService.uploadAlbumImage(albumId, file);
+      setSuccess('Image uploadée !');
+      loadAlbums();
+    } catch (err: any) {
+      setError(err.message || 'Échec upload');
+    } finally {
+      setUploadingId(null);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -57,6 +76,8 @@ export const AdminGallery: React.FC = () => {
       {isCreating && (
         <form onSubmit={handleCreate} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900">Créer un album</h2>
+          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
           <input
             type="text"
             required
@@ -79,20 +100,32 @@ export const AdminGallery: React.FC = () => {
         </form>
       )}
 
+      {error && !isCreating && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+      {success && !isCreating && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {albums.map(alb => (
+        {albums.map((alb: any) => (
           <div key={alb.id} className="bg-white border border-slate-200 rounded-3xl overflow-hidden p-6 space-y-4 shadow-sm">
-            <div className="h-40 rounded-2xl overflow-hidden relative">
-              <img src={alb.cover_image} alt={alb.title} className="w-full h-full object-cover" />
+            <div className="h-40 rounded-2xl overflow-hidden relative bg-slate-100 flex items-center justify-center">
+              {(alb.cover_image || alb.cover_image_path) ? (
+                <img src={alb.cover_image || alb.cover_image_path} alt={alb.title} className="w-full h-full object-cover" />
+              ) : (
+                <ImageIcon className="w-8 h-8 text-slate-400" />
+              )}
             </div>
             <div className="space-y-1">
               <h3 className="font-bold text-slate-900 text-lg">{alb.title}</h3>
               <p className="text-xs text-slate-500">{alb.description}</p>
-              <p className="text-xs text-brand-700 font-mono pt-2">{alb.photos.length} photos</p>
+              <p className="text-xs text-brand-700 font-mono pt-2">{(alb.photos?.length ?? alb.images?.length ?? 0)} photos</p>
             </div>
-            <button onClick={() => handleDelete(alb.id)} className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-xl transition-colors">
-              Supprimer l'album
-            </button>
+            <div className="space-y-2">
+              <label className="block w-full py-2 bg-brand-50 text-brand-700 hover:bg-brand-100 text-xs font-semibold rounded-xl transition-colors text-center cursor-pointer">
+                {uploadingId === alb.id ? 'Upload...' : 'Ajouter une image'}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => handleImageUpload(alb.id, e)} disabled={uploadingId === alb.id} />
+              </label>
+              <button onClick={() => handleDelete(alb.id)} className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-xl transition-colors">
+                Supprimer l'album
+              </button>
+            </div>
           </div>
         ))}
       </div>

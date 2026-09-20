@@ -11,6 +11,8 @@ export const AdminResults: React.FC = () => {
   const [resultType, setResultType] = useState<any>('Trimestre 1');
   const [academicYear, setAcademicYear] = useState('2025-2026');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     loadData();
@@ -34,22 +36,23 @@ export const AdminResults: React.FC = () => {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetClass = classes.find(c => c.id === selectedClassId);
-    const fileName = selectedFile ? selectedFile.name : 'resultats-officiels.pdf';
-
-    await adminService.createResult({
-      class_id: selectedClassId,
-      class_name: targetClass?.name || 'Classe',
-      academic_year: academicYear,
-      result_type: resultType,
-      file_path: `/secure/results/${fileName}`,
-      file_name: fileName,
-      status: 'published'
-    });
-
-    setSelectedFile(null);
-    setIsUploading(false);
-    loadData();
+    setError(''); setSuccess('');
+    if (!selectedFile) { setError('Veuillez sélectionner un fichier PDF ou Excel'); return; }
+    if (!selectedClassId) { setError('Veuillez sélectionner une classe'); return; }
+    try {
+      await adminService.createResult({
+        class_id: selectedClassId,
+        academic_year: academicYear,
+        result_type: resultType,
+        file: selectedFile,
+        status: 'published'
+      });
+      setSuccess('Résultat publié ! Notification privée envoyée aux élèves.');
+      setSelectedFile(null); setIsUploading(false);
+      loadData();
+    } catch (err: any) {
+      setError(err.message || 'Échec upload');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -87,6 +90,8 @@ export const AdminResults: React.FC = () => {
             <ShieldCheck className="w-5 h-5 text-emerald-600" />
             <span>Publier un nouveau fichier de notes</span>
           </h2>
+          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             <div className="space-y-2">

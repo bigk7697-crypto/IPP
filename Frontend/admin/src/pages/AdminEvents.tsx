@@ -10,6 +10,8 @@ export const AdminEvents: React.FC = () => {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [startAt, setStartAt] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     loadEvents();
@@ -22,18 +24,16 @@ export const AdminEvents: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await adminService.createEvent({
-      title,
-      description,
-      location,
-      start_at: startAt || new Date().toISOString(),
-      status: 'upcoming'
-    });
-    setTitle('');
-    setLocation('');
-    setDescription('');
-    setIsCreating(false);
-    loadEvents();
+    setError(''); setSuccess('');
+    try {
+      const iso = startAt ? new Date(startAt).toISOString() : new Date().toISOString();
+      await adminService.createEvent({ title, description, location, start_at: iso, status: 'published' });
+      setSuccess('Événement publié ! Visible sur calendrier et notifications.');
+      setTitle(''); setLocation(''); setDescription(''); setStartAt(''); setIsCreating(false);
+      loadEvents();
+    } catch (err: any) {
+      setError(err.message || 'Échec de publication');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -62,6 +62,8 @@ export const AdminEvents: React.FC = () => {
       {isCreating && (
         <form onSubmit={handleCreate} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900">Créer un événement</h2>
+          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
               type="text"

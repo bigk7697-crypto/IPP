@@ -9,6 +9,10 @@ export const AdminDocuments: React.FC = () => {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<any>('Administratif');
   const [description, setDescription] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     loadDocs();
@@ -21,18 +25,23 @@ export const AdminDocuments: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await adminService.createDocument({
-      title,
-      description,
-      category,
-      file_path: '/docs/document.pdf',
-      file_name: 'document.pdf',
-      is_public: true
-    });
-    setTitle('');
-    setDescription('');
-    setIsCreating(false);
-    loadDocs();
+    setError(''); setSuccess('');
+    if (!selectedFile) { setError('Veuillez sélectionner un fichier'); return; }
+    try {
+      await adminService.createDocument({
+        title,
+        description,
+        category,
+        visibility,
+        status: 'published',
+        file: selectedFile
+      });
+      setSuccess('Document publié !');
+      setTitle(''); setDescription(''); setSelectedFile(null); setIsCreating(false);
+      loadDocs();
+    } catch (err: any) {
+      setError(err.message || 'Échec publication');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -89,6 +98,22 @@ export const AdminDocuments: React.FC = () => {
             onChange={e => setDescription(e.target.value)}
             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900"
           ></textarea>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold text-slate-500">Fichier (PDF, Word, Excel)</label>
+              <input type="file" required accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" onChange={e => setSelectedFile(e.target.files?.[0] || null)} className="w-full text-sm" />
+              {selectedFile && <p className="text-xs text-emerald-600 mt-1">{selectedFile.name}</p>}
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500">Visibilité</label>
+              <select value={visibility} onChange={e => setVisibility(e.target.value as any)} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                <option value="public">Public (visible sans connexion)</option>
+                <option value="private">Privé (connexion requise)</option>
+              </select>
+            </div>
+          </div>
+          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
           <button type="submit" className="px-6 py-2.5 bg-brand-900 text-white font-semibold rounded-xl text-sm">
             Enregistrer le document
           </button>

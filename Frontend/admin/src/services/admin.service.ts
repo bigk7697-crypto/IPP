@@ -1,117 +1,159 @@
-import { NewsItem, EventItem, SchoolClass, ResultItem, DocumentItem, GalleryAlbum } from '../types';
-
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
-async function adminFetch<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
-  try {
-    const token = localStorage.getItem('admin_token');
-    const response = await fetch(`${API_BASE}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        ...(options?.headers || {}),
-      },
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    return data.data || data;
-  } catch {
-    return null;
+async function adminFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = localStorage.getItem('admin_token');
+  const headers: Record<string, string> = {
+    ...(options?.headers as Record<string, string>),
+  };
+  // Ne pas forcer Content-Type si FormData (laisser le navigateur le gérer)
+  if (!(options?.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
   }
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers,
+  });
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const msg = json?.error?.message || json?.error || `Erreur ${response.status}`;
+    throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+  }
+  // Backend renvoie {success:true, data, pagination} -> on unwrap data
+  if (json && typeof json === 'object' && 'data' in json) return json.data as T;
+  return json as T;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80) || 'actualite';
 }
 
 export const adminService = {
-  async getNews() {
-    const remote = await adminFetch<NewsItem[]>('/admin/news');
-    return remote || [];
+  // News
+  async getNews(): Promise<any[]> {
+    const data = await adminFetch<any[]>('/admin/news?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createNews(data: Omit<NewsItem, 'id' | 'created_at'>) {
-    const remote = await adminFetch<NewsItem>('/admin/news', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API création actualité');
-    return remote;
+  async createNews(data: { title: string; slug?: string; content: string; image_path?: string; status?: string }) {
+    const payload = {
+      title: data.title,
+      slug: data.slug || slugify(data.title),
+      content: data.content,
+      image_path: data.image_path,
+      status: data.status || 'published',
+    };
+    return adminFetch('/admin/news', { method: 'POST', body: JSON.stringify(payload) });
   },
-  async updateNews(id: string, data: Partial<NewsItem>) {
-    const remote = await adminFetch<NewsItem>(`/admin/news/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API modification actualité');
-    return remote;
+  async updateNews(id: string, data: any) {
+    return adminFetch(`/admin/news/${id}`, { method: 'PUT', body: JSON.stringify(data) });
   },
   async deleteNews(id: string) {
-    await adminFetch(`/admin/news/${id}`, { method: 'DELETE' });
+    return adminFetch(`/admin/news/${id}`, { method: 'DELETE' });
   },
 
+  // Events
   async getEvents() {
-    const remote = await adminFetch<EventItem[]>('/admin/events');
-    return remote || [];
+    const data = await adminFetch<any[]>('/admin/events?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createEvent(data: Omit<EventItem, 'id' | 'created_at'>) {
-    const remote = await adminFetch<EventItem>('/admin/events', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API création événement');
-    return remote;
-  },
-  async updateEvent(id: string, data: Partial<EventItem>) {
-    const remote = await adminFetch<EventItem>(`/admin/events/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API modification événement');
-    return remote;
+  async createEvent(data: { title: string; description: string; location: string; start_at: string; status?: string }) {
+    const payload = {
+      title: data.title,
+      description: data.description,
+      location: data.location,
+      start_at: new Date(data.start_at).toISOString(),
+      status: data.status || 'published',
+    };
+    return adminFetch('/admin/events', { method: 'POST', body: JSON.stringify(payload) });
   },
   async deleteEvent(id: string) {
-    await adminFetch(`/admin/events/${id}`, { method: 'DELETE' });
+    return adminFetch(`/admin/events/${id}`, { method: 'DELETE' });
   },
 
+  // Classes
   async getClasses() {
-    const remote = await adminFetch<SchoolClass[]>('/admin/classes');
-    return remote || [];
+    const data = await adminFetch<any[]>('/admin/classes?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createClass(data: Omit<SchoolClass, 'id' | 'created_at'>) {
-    const remote = await adminFetch<SchoolClass>('/admin/classes', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API création classe');
-    return remote;
-  },
-  async updateClass(id: string, data: Partial<SchoolClass>) {
-    const remote = await adminFetch<SchoolClass>(`/admin/classes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API modification classe');
-    return remote;
+  async createClass(data: any) {
+    return adminFetch('/admin/classes', { method: 'POST', body: JSON.stringify(data) });
   },
   async deleteClass(id: string) {
-    await adminFetch(`/admin/classes/${id}`, { method: 'DELETE' });
+    return adminFetch(`/admin/classes/${id}`, { method: 'DELETE' });
   },
 
+  // Results - upload via FormData
   async getResults() {
-    const remote = await adminFetch<ResultItem[]>('/admin/results');
-    return remote || [];
+    const data = await adminFetch<any[]>('/admin/results?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createResult(data: Omit<ResultItem, 'id' | 'created_at' | 'published_at'>) {
-    const remote = await adminFetch<ResultItem>('/admin/results', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API publication résultat');
-    return remote;
+  async createResult(data: { class_id: string; academic_year: string; result_type: string; file: File; status?: string }) {
+    const fd = new FormData();
+    fd.append('file', data.file);
+    fd.append('class_id', data.class_id);
+    fd.append('academic_year', data.academic_year);
+    fd.append('result_type', data.result_type);
+    fd.append('status', data.status || 'published');
+    return adminFetch('/admin/results', { method: 'POST', body: fd });
   },
   async deleteResult(id: string) {
-    await adminFetch(`/admin/results/${id}`, { method: 'DELETE' });
+    return adminFetch(`/admin/results/${id}`, { method: 'DELETE' });
   },
 
+  // Documents - via FormData si fichier, sinon JSON (pour compat)
   async getDocuments() {
-    const remote = await adminFetch<DocumentItem[]>('/admin/documents');
-    return remote || [];
+    const data = await adminFetch<any[]>('/admin/documents?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createDocument(data: Omit<DocumentItem, 'id' | 'created_at'>) {
-    const remote = await adminFetch<DocumentItem>('/admin/documents', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API ajout document');
-    return remote;
+  async createDocument(data: { title: string; description?: string; category?: string; visibility?: string; status?: string; file?: File }) {
+    if (data.file) {
+      const fd = new FormData();
+      fd.append('file', data.file);
+      fd.append('title', data.title);
+      if (data.description) fd.append('description', data.description);
+      if (data.category) fd.append('category', data.category);
+      fd.append('visibility', data.visibility || 'public');
+      fd.append('status', data.status || 'published');
+      return adminFetch('/admin/documents', { method: 'POST', body: fd });
+    }
+    // fallback JSON (sans fichier) - backend va refuser mais on tente
+    return adminFetch('/admin/documents', { method: 'POST', body: JSON.stringify(data) });
   },
   async deleteDocument(id: string) {
-    await adminFetch(`/admin/documents/${id}`, { method: 'DELETE' });
+    return adminFetch(`/admin/documents/${id}`, { method: 'DELETE' });
   },
 
+  // Gallery
   async getAlbums() {
-    const remote = await adminFetch<GalleryAlbum[]>('/admin/gallery');
-    return remote || [];
+    // backend public route, mais on passe par admin token si dispo
+    const data = await adminFetch<any[]>('/gallery/albums?page=1&limit=100');
+    return Array.isArray(data) ? data : [];
   },
-  async createAlbum(data: Omit<GalleryAlbum, 'id' | 'created_at' | 'photos'>) {
-    const remote = await adminFetch<GalleryAlbum>('/admin/gallery', { method: 'POST', body: JSON.stringify(data) });
-    if (!remote) throw new Error('Erreur API création album');
-    return remote;
+  async getAlbumDetail(id: string) {
+    return adminFetch(`/gallery/albums/${id}`);
+  },
+  async createAlbum(data: { title: string; description: string; cover_image_path?: string }) {
+    const payload = {
+      title: data.title,
+      description: data.description,
+      cover_image_path: data.cover_image_path,
+    };
+    return adminFetch('/admin/gallery/albums', { method: 'POST', body: JSON.stringify(payload) });
   },
   async deleteAlbum(id: string) {
-    await adminFetch(`/admin/gallery/${id}`, { method: 'DELETE' });
-  }
+    return adminFetch(`/admin/gallery/albums/${id}`, { method: 'DELETE' });
+  },
+  async uploadAlbumImage(albumId: string, file: File, caption?: string) {
+    const fd = new FormData();
+    fd.append('image', file);
+    if (caption) fd.append('caption', caption);
+    return adminFetch(`/admin/gallery/albums/${albumId}/images`, { method: 'POST', body: fd });
+  },
 };

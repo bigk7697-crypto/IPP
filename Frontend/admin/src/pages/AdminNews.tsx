@@ -9,6 +9,8 @@ export const AdminNews: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [status, setStatus] = useState<'published' | 'draft'>('published');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     loadNews();
@@ -21,19 +23,15 @@ export const AdminNews: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await adminService.createNews({
-      title,
-      slug: title.toLowerCase().replace(/ /g, '-'),
-      content,
-      image_url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1200&q=80',
-      status,
-      created_by: 'adm-1',
-      author_name: 'Direction'
-    });
-    setTitle('');
-    setContent('');
-    setIsCreating(false);
-    loadNews();
+    setError(''); setSuccess('');
+    try {
+      await adminService.createNews({ title, content, status });
+      setSuccess('Actualité publiée avec succès ! Visible côté client et notification envoyée.');
+      setTitle(''); setContent(''); setIsCreating(false);
+      loadNews();
+    } catch (err: any) {
+      setError(err.message || 'Échec de publication');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -62,6 +60,8 @@ export const AdminNews: React.FC = () => {
       {isCreating && (
         <form onSubmit={handleCreate} className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
           <h2 className="text-lg font-bold text-slate-900">Créer une actualité</h2>
+          {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">{error}</div>}
+          {success && <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{success}</div>}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-700">Titre</label>
             <input
