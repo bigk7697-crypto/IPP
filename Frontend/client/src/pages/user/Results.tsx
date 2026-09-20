@@ -46,6 +46,7 @@ export const Results: React.FC = () => {
     loadResultForClass();
   }, [selectedClassId]);
 
+  const selectedClass = classes.find(c => c.id === selectedClassId);
   return (
     <div className="space-y-8">
       <div>
@@ -77,9 +78,10 @@ export const Results: React.FC = () => {
         <div className="flex justify-center py-20">
           <div className="w-8 h-8 border-4 border-brand-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      ) : !resultData ? (
-        <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm">
+      ) : !resultData?.result ? (
+        <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-2">
           <p className="text-slate-500 font-medium">Aucun résultat officiel publié pour cette classe.</p>
+          {selectedClass && <p className="text-xs text-slate-400">Classe sélectionnée : {selectedClass.name} — {selectedClass.academic_year}</p>}
         </div>
       ) : (
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -100,12 +102,12 @@ export const Results: React.FC = () => {
                     <div className="p-2 bg-brand-50 text-brand-900 rounded-xl">
                       <FileSpreadsheet className="w-4 h-4" />
                     </div>
-                    <span>{resultData.result.class_name}</span>
+                    <span>{resultData.result.class_name || resultData.result.class_id || selectedClass?.name || 'Classe'}</span>
                   </td>
-                  <td className="py-4 px-6 font-medium text-slate-700">{resultData.result.result_type}</td>
-                  <td className="py-4 px-6 text-slate-500">{resultData.result.academic_year}</td>
+                  <td className="py-4 px-6 font-medium text-slate-700">{resultData.result.result_type || '—'}</td>
+                  <td className="py-4 px-6 text-slate-500">{resultData.result.academic_year || '—'}</td>
                   <td className="py-4 px-6 text-slate-500">
-                    {new Date(resultData.result.published_at).toLocaleDateString('fr-FR')}
+                    {resultData.result.published_at ? new Date(resultData.result.published_at).toLocaleDateString('fr-FR') : '—'}
                   </td>
                   <td className="py-4 px-6 text-right">
                     <button

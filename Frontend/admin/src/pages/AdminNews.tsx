@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { NewsItem } from '../types';
+import { supabase } from '../services/supabaseClient';
 
 export const AdminNews: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -9,6 +10,7 @@ export const AdminNews: React.FC = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [status, setStatus] = useState<'published' | 'draft'>('published');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -25,9 +27,17 @@ export const AdminNews: React.FC = () => {
     e.preventDefault();
     setError(''); setSuccess('');
     try {
-      await adminService.createNews({ title, content, status });
+      let image_path: string | undefined = undefined;
+      if (selectedImage) {
+        const ext = selectedImage.name.split('.').pop() || 'jpg';
+        const path = `news/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('public-assets').upload(path, selectedImage, { upsert: false });
+        if (upErr) throw new Error('Upload image échoué: ' + upErr.message);
+        image_path = `public-assets/${path}`;
+      }
+      await adminService.createNews({ title, content, status, image_path });
       setSuccess('Actualité publiée avec succès ! Visible côté client et notification envoyée.');
-      setTitle(''); setContent(''); setIsCreating(false);
+      setTitle(''); setContent(''); setSelectedImage(null); setIsCreating(false);
       loadNews();
     } catch (err: any) {
       setError(err.message || 'Échec de publication');
@@ -94,6 +104,18 @@ export const AdminNews: React.FC = () => {
               <option value="published">Publié (Visible sur le site public)</option>
               <option value="draft">Brouillon (Non visible)</option>
             </select>
+          </div>
+          <div className="space-y-1">
+            <label className="text-xs font-semibold text-slate-700">Image (optionnel)</label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium cursor-pointer">
+                <Upload className="w-4 h-4" />
+                <span>{selectedImage ? selectedImage.name : 'Choisir une image'}</span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => setSelectedImage(e.target.files?.[0] || null)} />
+              </label>
+              {selectedImage && <button type="button" onClick={() => setSelectedImage(null)} className="text-xs text-red-600">Retirer</button>}
+            </div>
+            <p className="text-[11px] text-slate-400">JPEG/PNG/WebP, 5Mo max. Laissez vide pour une actualité texte seule.</p>
           </div>
           <button type="submit" className="px-6 py-2.5 bg-brand-900 text-white font-semibold rounded-xl text-sm">
             Enregistrer et Publier
