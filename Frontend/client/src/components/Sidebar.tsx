@@ -4,7 +4,7 @@ import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, LogOu
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 
-export const Sidebar: React.FC = () => {
+export const Sidebar: React.FC<{ mobileOpen?: boolean; onClose?: () => void }> = ({ mobileOpen = false, onClose }) => {
   const { user, logout } = useAuthStore();
   const { notifications } = useNotificationStore();
   const navigate = useNavigate();
@@ -20,8 +20,17 @@ export const Sidebar: React.FC = () => {
     { name: 'Paramètres', path: '/espace/parametres', icon: Settings },
   ];
 
+  const handleNav = (path: string) => {
+    navigate(path);
+    onClose?.();
+  };
+
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-5rem)] flex flex-col justify-between hidden md:flex">
+    <>
+      {/* Overlay mobile */}
+      {mobileOpen && <div className="fixed inset-0 bg-slate-900/40 z-30 md:hidden" onClick={onClose} />}
+      <aside className={`w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-5rem)] flex flex-col justify-between 
+        ${mobileOpen ? 'fixed inset-y-0 left-0 z-40 flex md:static' : 'hidden md:flex'}`}>
       <div>
         <div className="p-6 border-b border-slate-100 flex items-center gap-3">
           <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center text-white">
