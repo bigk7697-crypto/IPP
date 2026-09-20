@@ -37,6 +37,8 @@ export function App() {
   useEffect(() => {
     initAuth();
     fetchNotifications();
+    const id = setInterval(() => fetchNotifications(), 15000);
+    return () => clearInterval(id);
   }, []);
 
   const basename = import.meta.env.PROD ? '/IPP' : undefined;

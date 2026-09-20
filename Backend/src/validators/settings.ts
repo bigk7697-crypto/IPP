@@ -9,4 +9,5 @@ export const settingsSchema = z.object({
   logo_path: z.string().trim().max(500).optional(),
   website: z.string().trim().url().or(z.string().max(0)).optional(),
   social_links: z.record(z.string().trim().max(300)).optional(),
+  academic_year: z.string().trim().regex(/^\d{4}-\d{4}$/, 'Format attendu : 2025-2026').optional(),
 });
