@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { EventItem } from '../types';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AdminEvents: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
@@ -36,10 +37,18 @@ export const AdminEvents: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Supprimer cet événement ?')) {
-      await adminService.deleteEvent(id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await adminService.deleteEvent(deleteId);
+      setDeleteId(null);
       loadEvents();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -120,7 +129,7 @@ export const AdminEvents: React.FC = () => {
                 <td className="py-4 px-6 text-slate-600">{evt.location}</td>
                 <td className="py-4 px-6 text-slate-600">{new Date(evt.start_at).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6 text-right">
-                  <button onClick={() => handleDelete(evt.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                  <button onClick={() => setDeleteId(evt.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -129,6 +138,15 @@ export const AdminEvents: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={deleteId !== null}
+        title="Supprimer cet événement ?"
+        message="Cet événement sera retiré du calendrier et du site public. Cette action est irréversible."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setDeleteId(null)}
+      />
     </div>
   );
 };

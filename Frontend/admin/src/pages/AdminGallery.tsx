@@ -3,6 +3,7 @@ import { Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { GalleryAlbum } from '../types';
 import { supabase } from '../services/supabaseClient';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AdminGallery: React.FC = () => {
   const [albums, setAlbums] = useState<GalleryAlbum[]>([]);
@@ -60,10 +61,18 @@ export const AdminGallery: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Supprimer cet album ?')) {
-      await adminService.deleteAlbum(id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await adminService.deleteAlbum(deleteId);
+      setDeleteId(null);
       loadAlbums();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -144,13 +153,22 @@ export const AdminGallery: React.FC = () => {
                 {uploadingId === alb.id ? 'Upload...' : 'Ajouter une image'}
                 <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={e => handleImageUpload(alb.id, e)} disabled={uploadingId === alb.id} />
               </label>
-              <button onClick={() => handleDelete(alb.id)} className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-xl transition-colors">
+              <button onClick={() => setDeleteId(alb.id)} className="w-full py-2 bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold rounded-xl transition-colors">
                 Supprimer l'album
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      <ConfirmModal
+        open={deleteId !== null}
+        title="Supprimer cet album ?"
+        message="L'album et toutes ses photos seront définitivement supprimés de la galerie."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setDeleteId(null)}
+      />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, FolderOpen } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { DocumentItem } from '../types';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AdminDocuments: React.FC = () => {
   const [docs, setDocs] = useState<DocumentItem[]>([]);
@@ -44,10 +45,18 @@ export const AdminDocuments: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Supprimer ce document ?')) {
-      await adminService.deleteDocument(id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await adminService.deleteDocument(deleteId);
+      setDeleteId(null);
       loadDocs();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -140,7 +149,7 @@ export const AdminDocuments: React.FC = () => {
                 <td className="py-4 px-6 text-slate-700">{doc.category}</td>
                 <td className="py-4 px-6 text-slate-500 font-mono text-xs">{doc.file_name}</td>
                 <td className="py-4 px-6 text-right">
-                  <button onClick={() => handleDelete(doc.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                  <button onClick={() => setDeleteId(doc.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -149,6 +158,15 @@ export const AdminDocuments: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={deleteId !== null}
+        title="Supprimer ce document ?"
+        message="Le document ne sera plus accessible ni côté public ni côté élèves."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setDeleteId(null)}
+      />
     </div>
   );
 };

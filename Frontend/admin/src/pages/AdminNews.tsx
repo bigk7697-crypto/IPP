@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { NewsItem } from '../types';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { supabase } from '../services/supabaseClient';
 
 export const AdminNews: React.FC = () => {
@@ -44,10 +45,18 @@ export const AdminNews: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Voulez-vous supprimer cette actualité ?')) {
-      await adminService.deleteNews(id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await adminService.deleteNews(deleteId);
+      setDeleteId(null);
       loadNews();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -144,7 +153,7 @@ export const AdminNews: React.FC = () => {
                 </td>
                 <td className="py-4 px-6 text-slate-500">{new Date(item.created_at).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6 text-right">
-                  <button onClick={() => handleDelete(item.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
+                  <button onClick={() => setDeleteId(item.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -153,6 +162,15 @@ export const AdminNews: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={deleteId !== null}
+        title="Supprimer cette actualité ?"
+        message="Cette actualité sera définitivement retirée du site public. Cette action est irréversible."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setDeleteId(null)}
+      />
     </div>
   );
 };

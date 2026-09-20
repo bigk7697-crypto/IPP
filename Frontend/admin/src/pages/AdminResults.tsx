@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, ShieldCheck, FileSpreadsheet, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { ResultItem, SchoolClass } from '../types';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AdminResults: React.FC = () => {
   const [results, setResults] = useState<ResultItem[]>([]);
@@ -55,10 +56,18 @@ export const AdminResults: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Supprimer ce résultat ?')) {
-      await adminService.deleteResult(id);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleting(true);
+    try {
+      await adminService.deleteResult(deleteId);
+      setDeleteId(null);
       loadData();
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -196,7 +205,7 @@ export const AdminResults: React.FC = () => {
                 <td className="py-4 px-6 text-slate-500 font-mono text-xs">{res.file_name}</td>
                 <td className="py-4 px-6 text-slate-500">{new Date(res.published_at).toLocaleDateString('fr-FR')}</td>
                 <td className="py-4 px-6 text-right">
-                  <button onClick={() => handleDelete(res.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Supprimer">
+                  <button onClick={() => setDeleteId(res.id)} className="p-2 text-slate-400 hover:text-red-600 transition-colors" title="Supprimer">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </td>
@@ -205,6 +214,15 @@ export const AdminResults: React.FC = () => {
           </tbody>
         </table>
       </div>
+
+      <ConfirmModal
+        open={deleteId !== null}
+        title="Supprimer ce résultat ?"
+        message="Le fichier de notes sera retiré de l'espace élèves. Cette action est irréversible."
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => !deleting && setDeleteId(null)}
+      />
     </div>
   );
 };
