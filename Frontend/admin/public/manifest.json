@@ -1,0 +1,24 @@
+{
+  "name": "IPP La Paix",
+  "short_name": "IPP",
+  "description": "IPP La Paix - Administration",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "start_url": "/IPP/admin/",
+  "scope": "/IPP/admin/",
+  "icons": [
+    {
+      "src": "/IPP/admin/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

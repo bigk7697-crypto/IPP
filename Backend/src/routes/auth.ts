@@ -11,7 +11,7 @@ router.get('/me', auth, async (req, res, next) => {
     const svc = getServiceClient();
     const { data: profile } = await svc
       .from('profiles')
-      .select('id,first_name,last_name,email,role,created_at')
+      .select('id,first_name,last_name,email,role,avatar_url,created_at')
       .eq('id', req.user!.id)
       .single();
 

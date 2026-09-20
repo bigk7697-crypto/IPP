@@ -66,7 +66,7 @@ export const Home: React.FC = () => {
               Façonner l'élite scientifique et technique de demain
             </h1>
             <p className="text-lg text-slate-300 leading-relaxed">
-              Bienvenue au Lycée Scientifique et Technique Saint-Exupéry. Une institution d'enseignement secondaire offrant un encadrement rigoureux, des laboratoires de pointe et un suivi personnalisé.
+              Bienvenue au Lycée Polytechnique LA PAIX. Une institution d'enseignement secondaire offrant un encadrement rigoureux, des laboratoires de pointe et un suivi personnalisé.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
@@ -138,7 +138,7 @@ export const Home: React.FC = () => {
               Une institution dédiée à l’épanouissement intellectuel et moral
             </h3>
             <p className="text-slate-600 leading-relaxed">
-              Fondé sur des valeurs d'intégrité, de rigueur et d'innovation, le Lycée Saint-Exupéry offre un cadre d'apprentissage stimulant. Nos enseignants hautement qualifiés guident chaque élève pour révéler son plein potentiel dans les disciplines scientifiques, littéraires et techniques.
+              Fondé sur des valeurs d'intégrité, de rigueur et d'innovation, le Lycée Polytechnique LA PAIX offre un cadre d'apprentissage stimulant. Nos enseignants hautement qualifiés guident chaque élève pour révéler son plein potentiel dans les disciplines scientifiques, littéraires et techniques.
             </p>
             <div className="pt-2">
               <Link

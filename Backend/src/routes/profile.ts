@@ -14,7 +14,7 @@ router.get('/', async (req, res, next) => {
     const svc = getServiceClient();
     const { data, error } = await svc
       .from('profiles')
-      .select('id,first_name,last_name,email,role,created_at,updated_at')
+      .select('id,first_name,last_name,email,role,avatar_url,created_at,updated_at')
       .eq('id', req.user!.id)
       .single();
     if (error) throw error;
@@ -40,7 +40,7 @@ router.patch('/', async (req, res, next) => {
       .from('profiles')
       .update(parsed.data)
       .eq('id', req.user!.id)
-      .select('id,first_name,last_name,email,role,created_at,updated_at')
+      .select('id,first_name,last_name,email,role,avatar_url,created_at,updated_at')
       .single();
     if (error) throw error;
     res.json({ success: true, data });

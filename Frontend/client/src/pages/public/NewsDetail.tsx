@@ -62,9 +62,24 @@ export const NewsDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-3xl overflow-hidden shadow-lg h-96">
-        <img src={news.image_url} alt={news.title} className="w-full h-full object-cover" />
-      </div>
+      {(news as any).image_path || (news as any).image_url ? (
+        <div className="rounded-3xl overflow-hidden shadow-lg h-96 bg-slate-100">
+          <img
+            src={(() => {
+              const raw = (news as any).image_path || (news as any).image_url;
+              if (!raw) return '';
+              if (raw.startsWith('http')) return raw;
+              // raw = public-assets/news/xxx.jpg -> public bucket
+              const bucket = 'public-assets';
+              const path = raw.startsWith(bucket + '/') ? raw.slice(bucket.length + 1) : raw;
+              return `https://knmxosdfxxzjagqyhkcc.supabase.co/storage/v1/object/public/${bucket}/${path}`;
+            })()}
+            alt={news.title}
+            className="w-full h-full object-cover"
+            onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}
+          />
+        </div>
+      ) : null}
 
       <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6 text-lg">
         <p>{news.content}</p>

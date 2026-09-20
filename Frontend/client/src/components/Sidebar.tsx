@@ -85,5 +85,6 @@ export const Sidebar: React.FC<{ mobileOpen?: boolean; onClose?: () => void }> =
         </button>
       </div>
     </aside>
+    </>
   );
 };
