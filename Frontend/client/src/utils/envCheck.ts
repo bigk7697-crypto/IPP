@@ -7,8 +7,6 @@ export function detectFetchTampering(): string[] {
   const offenders: string[] = [];
   const check = (name: string, value: unknown) => {
     try {
-      // Nos propres wrappers diagnostic ne comptent pas comme altération.
-      if ((value as any)?.__ippDiag) return;
       const src = Function.prototype.toString.call(value);
       if (!src.includes('[native code]')) offenders.push(name);
     } catch {
