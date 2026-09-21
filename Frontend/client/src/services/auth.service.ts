@@ -4,12 +4,31 @@ import { apiFetch } from './apiClient';
 
 const captchaToken = () => (window as any).__hcaptchaToken as string | undefined;
 
+const REPAIR_FLAG = 'ipp_auth_repaired';
+
 /** Traduit les erreurs techniques auth en français + répare le stockage local. */
 function toFriendlyAuthError(err: unknown): Error {
   const msg = err instanceof Error ? err.message : String(err ?? '');
   if (/ISO-8859-1|AuthRetryableFetchError|Failed to execute 'fetch'/i.test(msg)) {
     repairSupabaseStorage();
-    return new Error('Session locale corrompue détectée et nettoyée. Rechargez la page puis reconnectez-vous.');
+    // La session en mémoire peut rester corrompue : un seul rechargement auto
+    // la jette. Au-delà, la source est externe (autre onglet, extension).
+    try {
+      if (!sessionStorage.getItem(REPAIR_FLAG)) {
+        sessionStorage.setItem(REPAIR_FLAG, '1');
+        window.location.reload();
+        return new Error('Nettoyage du stockage en cours, la page recharge…');
+      }
+    } catch {
+      // stockage indisponible : on affiche le message ci-dessous
+    }
+    return new Error(
+      'Session encore illisible après nettoyage. Fermez les autres onglets du site, ' +
+      'désactivez vos extensions, effacez les données du site, puis reconnectez-vous.'
+    );
+  }
+  if (/over_email_send_rate_limit|email rate limit/i.test(msg)) {
+    return new Error('Trop d’emails envoyés. Attendez quelques minutes puis réessayez.');
   }
   if (/user already registered/i.test(msg)) {
     return new Error('Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.');
