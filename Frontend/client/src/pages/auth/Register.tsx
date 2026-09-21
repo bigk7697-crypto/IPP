@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, ArrowLeft, UserPlus, Award, Wrench, ShieldCheck } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { detectFetchTampering } from '../../utils/envCheck';
 
 export const Register: React.FC = () => {
   const [firstName, setFirstName] = useState('');
@@ -11,6 +12,15 @@ export const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailSent, setEmailSent] = useState(false);
+  const [tampered, setTampered] = useState<string[]>([]);
+
+  useEffect(() => {
+    const offenders = detectFetchTampering();
+    setTampered(offenders);
+    if (offenders.length > 0) {
+      console.warn('[IPP] réseau navigateur modifié par un tiers :', offenders.join(', '));
+    }
+  }, []);
   const registerUser = useAuthStore(state => state.register);
   const navigate = useNavigate();
 
@@ -101,6 +111,13 @@ export const Register: React.FC = () => {
           {error && (
             <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
               {error}
+            </div>
+          )}
+
+          {tampered.length > 0 && (
+            <div className="p-3 bg-amber-50 text-amber-800 text-xs rounded-xl border border-amber-200">
+              Une extension modifie vos requêtes réseau ({tampered.join(', ')} non natif).
+              Si l'inscription échoue, désactivez vos extensions ou essayez une fenêtre de navigation privée.
             </div>
           )}
 
