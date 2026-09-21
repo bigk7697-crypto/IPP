@@ -15,6 +15,8 @@ import { Gallery } from './pages/public/Gallery';
 import { Documents } from './pages/public/Documents';
 import { Calendar } from './pages/public/Calendar';
 import { Contact } from './pages/public/Contact';
+import { Orientation } from './pages/public/Orientation';
+import { OrientationWidget } from './components/OrientationWidget';
 
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
@@ -69,6 +71,7 @@ export function App() {
           <Route path="/documents" element={<Documents />} />
           <Route path="/calendrier" element={<Calendar />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/orientation" element={<Orientation />} />
         </Route>
 
         {/* User Space Routes */}
@@ -81,6 +84,7 @@ export function App() {
           <Route path="/espace/parametres" element={<Settings />} />
         </Route>
       </Routes>
+      <OrientationWidget />
     </BrowserRouter>
   );
 }

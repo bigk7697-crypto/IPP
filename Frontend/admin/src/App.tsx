@@ -10,6 +10,7 @@ import { AdminResults } from './pages/AdminResults';
 import { AdminDocuments } from './pages/AdminDocuments';
 import { AdminGallery } from './pages/AdminGallery';
 import { AdminClasses } from './pages/AdminClasses';
+import { AdminOrientation } from './pages/AdminOrientation';
 import { AdminSettings } from './pages/AdminSettings';
 
 export function App() {
@@ -28,6 +29,7 @@ export function App() {
           <Route path="/documents" element={<AdminDocuments />} />
           <Route path="/gallery" element={<AdminGallery />} />
           <Route path="/classes" element={<AdminClasses />} />
+          <Route path="/orientation" element={<AdminOrientation />} />
           <Route path="/settings" element={<AdminSettings />} />
         </Route>
       </Routes>

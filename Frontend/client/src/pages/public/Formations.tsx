@@ -1,5 +1,6 @@
 import React from 'react';
-import { BookOpen, CheckCircle, GraduationCap } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { BookOpen, CheckCircle, GraduationCap, Compass, MessageCircle } from 'lucide-react';
 
 export const Formations: React.FC = () => {
   const programs = [
@@ -100,6 +101,19 @@ export const Formations: React.FC = () => {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="bg-brand-900 rounded-3xl p-8 sm:p-10 text-center space-y-4">
+        <h2 className="text-2xl font-extrabold text-white">Hésite entre plusieurs filières ?</h2>
+        <p className="text-slate-300 text-sm max-w-xl mx-auto">Fais le quiz d’orientation en 2 minutes ou pose ta question à l’assistant — sans créer de compte.</p>
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
+          <Link to="/orientation" className="inline-flex items-center gap-2 px-6 py-3 bg-amber-400 hover:bg-amber-300 text-brand-950 text-sm font-bold rounded-2xl transition-colors">
+            <Compass className="w-4 h-4" /> Faire le quiz
+          </Link>
+          <Link to="/orientation?tab=assistant" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-2xl border border-white/20 transition-colors">
+            <MessageCircle className="w-4 h-4" /> Poser une question
+          </Link>
+        </div>
       </div>
     </div>
   );

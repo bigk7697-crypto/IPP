@@ -199,4 +199,30 @@ export const adminService = {
     if (caption) fd.append('caption', caption);
     return adminFetch(`/admin/gallery/albums/${albumId}/images`, { method: 'POST', body: fd });
   },
+
+  // Orientation — base de connaissances (visible côté client après modif)
+  async getOrientationTopics() {
+    const data = await adminFetch<any[]>('/admin/orientation/topics');
+    return Array.isArray(data) ? data : [];
+  },
+  async createOrientationTopic(data: any) {
+    return adminFetch('/admin/orientation/topics', { method: 'POST', body: JSON.stringify(data) });
+  },
+  async updateOrientationTopic(id: string, data: any) {
+    return adminFetch(`/admin/orientation/topics/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+  },
+  async deleteOrientationTopic(id: string) {
+    return adminFetch(`/admin/orientation/topics/${id}`, { method: 'DELETE' });
+  },
+  async getUnanswered(handled?: boolean) {
+    const q = handled === undefined ? '' : `?handled=${handled}`;
+    const data = await adminFetch<any[]>(`/admin/orientation/unanswered${q}`);
+    return Array.isArray(data) ? data : [];
+  },
+  async markUnanswered(id: string, handled: boolean) {
+    return adminFetch(`/admin/orientation/unanswered/${id}`, { method: 'PATCH', body: JSON.stringify({ handled }) });
+  },
+  async deleteUnanswered(id: string) {
+    return adminFetch(`/admin/orientation/unanswered/${id}`, { method: 'DELETE' });
+  },
 };

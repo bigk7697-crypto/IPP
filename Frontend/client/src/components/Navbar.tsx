@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
     { name: 'Accueil', path: '/' },
     { name: 'L’Institut', path: '/ecole' },
     { name: 'Formations & Filières', path: '/formations' },
+    { name: 'Orientation', path: '/orientation' },
     { name: 'Actualités', path: '/actualites' },
     { name: 'Événements', path: '/evenements' },
     { name: 'Galerie', path: '/galerie' },
