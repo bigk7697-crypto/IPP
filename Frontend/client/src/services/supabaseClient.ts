@@ -1,4 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
+import { installNetworkSpy } from '../utils/netSpy';
+
+// Espion diagnostic TEMPORAIRE : loggue la valeur exacte de tout header
+// non-latin1 + l'écrivain d'une session corrompue (voir console [IPP-DIAG]).
+installNetworkSpy();
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
