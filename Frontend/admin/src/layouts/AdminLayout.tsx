@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { AdminSidebar } from '../components/AdminSidebar';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../services/supabaseClient';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://knmxosdfxxzjagqyhkcc.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'public-anon-key';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
 export const AdminLayout: React.FC = () => {

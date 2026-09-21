@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, LogIn, Smartphone } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://knmxosdfxxzjagqyhkcc.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'public-anon-key';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '../services/supabaseClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 

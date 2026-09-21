@@ -1,17 +1,33 @@
 import { UserProfile } from '../types';
-import { supabase } from './supabaseClient';
+import { supabase, repairSupabaseStorage } from './supabaseClient';
 import { apiFetch } from './apiClient';
 
 const captchaToken = () => (window as any).__hcaptchaToken as string | undefined;
 
+/** Traduit les erreurs techniques auth en français + répare le stockage local. */
+function toFriendlyAuthError(err: unknown): Error {
+  const msg = err instanceof Error ? err.message : String(err ?? '');
+  if (/ISO-8859-1|AuthRetryableFetchError|Failed to execute 'fetch'/i.test(msg)) {
+    repairSupabaseStorage();
+    return new Error('Session locale corrompue détectée et nettoyée. Rechargez la page puis reconnectez-vous.');
+  }
+  return err instanceof Error ? err : new Error(msg || 'Erreur d’authentification.');
+}
+
 export const authService = {
   async login(email: string, password: string):Promise<UserProfile> {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-      options: captchaToken() ? { captchaToken: captchaToken() } : undefined,
-    });
-    if (error) throw new Error(error.message);
+    let data;
+    try {
+      const res = await supabase.auth.signInWithPassword({
+        email,
+        password,
+        options: captchaToken() ? { captchaToken: captchaToken() } : undefined,
+      });
+      if (res.error) throw new Error(res.error.message);
+      data = res.data;
+    } catch (e) {
+      throw toFriendlyAuthError(e);
+    }
     if (data.session) {
       localStorage.setItem('school_token', data.session.access_token);
     }
@@ -22,18 +38,24 @@ export const authService = {
   },
 
   async register(data: { first_name: string; last_name: string; email: string; password: string }): Promise<UserProfile> {
-    const { data: authData, error } = await supabase.auth.signUp({
-      email: data.email,
-      password: data.password,
-      options: {
-        data: {
-          first_name: data.first_name,
-          last_name: data.last_name
-        },
-        ...(captchaToken() ? { captchaToken: captchaToken() } : {}),
-      }
-    });
-    if (error) throw new Error(error.message);
+    let authData;
+    try {
+      const res = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            first_name: data.first_name,
+            last_name: data.last_name
+          },
+          ...(captchaToken() ? { captchaToken: captchaToken() } : {}),
+        }
+      });
+      if (res.error) throw new Error(res.error.message);
+      authData = res.data;
+    } catch (e) {
+      throw toFriendlyAuthError(e);
+    }
     if (authData.session) {
       localStorage.setItem('school_token', authData.session.access_token);
     }

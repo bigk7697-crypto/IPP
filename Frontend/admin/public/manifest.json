@@ -5,17 +5,17 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
-  "start_url": "/IPP/admin/",
-  "scope": "/IPP/admin/",
+  "start_url": "/IPP/direction/",
+  "scope": "/IPP/direction/",
   "icons": [
     {
-      "src": "/IPP/admin/favicon.svg",
+      "src": "/IPP/direction/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/favicon.svg",
+      "src": "/IPP/direction/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

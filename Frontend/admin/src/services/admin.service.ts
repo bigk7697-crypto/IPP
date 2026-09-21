@@ -1,7 +1,33 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
+// Un token corrompu (non-JWT / non-ASCII) casserait fetch() avec
+// "String contains non ISO-8859-1 code point" : on le purge et on
+// continue sans Authorization (le backend répondra 401 + purge auto).
+const JWT_RE = /^[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/;
+
+function readAdminToken(): string | null {
+  let token: string | null = null;
+  try {
+    token = localStorage.getItem('admin_token');
+  } catch {
+    return null;
+  }
+  if (!token) return null;
+  if (!JWT_RE.test(token)) {
+    try {
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      localStorage.removeItem('admin_logged');
+    } catch {
+      // ignore
+    }
+    return null;
+  }
+  return token;
+}
+
 async function adminFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('admin_token');
+  const token = readAdminToken();
   const headers: Record<string, string> = {
     ...(options?.headers as Record<string, string>),
   };
@@ -11,10 +37,15 @@ async function adminFetch<T>(endpoint: string, options?: RequestInit): Promise<T
   }
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (e: unknown) {
+    throw new Error(e instanceof Error && e.message ? e.message : 'Erreur réseau. Vérifiez votre connexion.');
+  }
   const json = await response.json().catch(() => ({}));
   if (!response.ok) {
     // 401 = session morte : purger TOUT (token + flag) et renvoyer au login.
