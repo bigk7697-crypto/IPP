@@ -11,6 +11,15 @@ function toFriendlyAuthError(err: unknown): Error {
     repairSupabaseStorage();
     return new Error('Session locale corrompue détectée et nettoyée. Rechargez la page puis reconnectez-vous.');
   }
+  if (/user already registered/i.test(msg)) {
+    return new Error('Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.');
+  }
+  if (/email not confirmed/i.test(msg)) {
+    return new Error('Email non confirmé. Consultez votre boîte mail puis réessayez.');
+  }
+  if (/invalid login credentials/i.test(msg)) {
+    return new Error('Email ou mot de passe incorrect.');
+  }
   return err instanceof Error ? err : new Error(msg || 'Erreur d’authentification.');
 }
 
@@ -37,7 +46,7 @@ export const authService = {
     return me;
   },
 
-  async register(data: { first_name: string; last_name: string; email: string; password: string }): Promise<UserProfile> {
+  async register(data: { first_name: string; last_name: string; email: string; password: string }): Promise<{ user: UserProfile; pendingEmailConfirmation: boolean }> {
     let authData;
     try {
       const res = await supabase.auth.signUp({
@@ -56,9 +65,20 @@ export const authService = {
     } catch (e) {
       throw toFriendlyAuthError(e);
     }
-    if (authData.session) {
-      localStorage.setItem('school_token', authData.session.access_token);
+    // Confirmation email requise (réglage Supabase par défaut) : pas de session
+    // → inutile d'appeler /auth/me (401 garanti). On guide vers la boîte mail.
+    if (!authData.session) {
+      const pending: UserProfile = {
+        id: authData.user?.id || `usr-${Date.now()}`,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+        role: 'user',
+        created_at: new Date().toISOString(),
+      };
+      return { user: pending, pendingEmailConfirmation: true };
     }
+    localStorage.setItem('school_token', authData.session.access_token);
     const me = await apiFetch<UserProfile>('/auth/me');
     const userProfile = me || {
       id: authData.user?.id || `usr-${Date.now()}`,
@@ -69,7 +89,7 @@ export const authService = {
       created_at: new Date().toISOString()
     };
     localStorage.setItem('school_user', JSON.stringify(userProfile));
-    return userProfile;
+    return { user: userProfile, pendingEmailConfirmation: false };
   },
 
   async logout(): Promise<void> {

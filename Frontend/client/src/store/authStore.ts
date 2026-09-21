@@ -6,7 +6,7 @@ interface AuthState {
   user: UserProfile | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<void>;
+  register: (data: { first_name: string; last_name: string; email: string; password: string }) => Promise<{ pendingEmailConfirmation: boolean }>;
   logout: () => Promise<void>;
   initAuth: () => Promise<void>;
 }
@@ -19,8 +19,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user });
   },
   register: async (data) => {
-    const user = await authService.register(data);
-    set({ user });
+    const { user, pendingEmailConfirmation } = await authService.register(data);
+    if (!pendingEmailConfirmation) set({ user });
+    return { pendingEmailConfirmation };
   },
   logout: async () => {
     await authService.logout();

@@ -10,6 +10,7 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailSent, setEmailSent] = useState(false);
   const registerUser = useAuthStore(state => state.register);
   const navigate = useNavigate();
 
@@ -22,7 +23,11 @@ export const Register: React.FC = () => {
     setLoading(true);
     setError('');
     try {
-      await registerUser({ first_name: firstName, last_name: lastName, email, password });
+      const { pendingEmailConfirmation } = await registerUser({ first_name: firstName, last_name: lastName, email, password });
+      if (pendingEmailConfirmation) {
+        setEmailSent(true);
+        return;
+      }
       navigate('/espace/dashboard');
     } catch (err: any) {
       setError(err.message || 'Erreur lors de l’inscription');
@@ -96,6 +101,13 @@ export const Register: React.FC = () => {
           {error && (
             <div className="p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200">
               {error}
+            </div>
+          )}
+
+          {emailSent && (
+            <div className="p-4 bg-green-50 text-green-800 text-sm rounded-xl border border-green-200 space-y-1">
+              <p className="font-bold">Compte créé !</p>
+              <p>Un email de confirmation vient d'être envoyé à <strong>{email}</strong>. Cliquez sur le lien reçu, puis <Link to="/connexion" className="font-semibold underline">connectez-vous</Link>.</p>
             </div>
           )}
 
