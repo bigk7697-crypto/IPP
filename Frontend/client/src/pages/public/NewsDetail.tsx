@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, User, Share2 } from 'lucide-react';
 import { newsService } from '../../services/news.service';
+import { resolveImageUrl } from '../../utils/images';
 import { NewsItem } from '../../types';
 
 export const NewsDetail: React.FC = () => {
@@ -62,18 +63,10 @@ export const NewsDetail: React.FC = () => {
         </div>
       </div>
 
-      {(news as any).image_path || (news as any).image_url ? (
+      {resolveImageUrl(news.image_url || news.image_path) ? (
         <div className="rounded-3xl overflow-hidden shadow-lg h-96 bg-slate-100">
           <img
-            src={(() => {
-              const raw = (news as any).image_path || (news as any).image_url;
-              if (!raw) return '';
-              if (raw.startsWith('http')) return raw;
-              // raw = public-assets/news/xxx.jpg -> public bucket
-              const bucket = 'public-assets';
-              const path = raw.startsWith(bucket + '/') ? raw.slice(bucket.length + 1) : raw;
-              return `https://knmxosdfxxzjagqyhkcc.supabase.co/storage/v1/object/public/${bucket}/${path}`;
-            })()}
+            src={resolveImageUrl(news.image_url || news.image_path)}
             alt={news.title}
             className="w-full h-full object-cover"
             onError={(e) => ((e.target as HTMLImageElement).style.display = 'none')}

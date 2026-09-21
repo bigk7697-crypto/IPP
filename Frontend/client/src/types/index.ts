@@ -18,7 +18,8 @@ export interface NewsItem {
   title: string;
   slug: string;
   content: string;
-  image_url: string;
+  image_url?: string;
+  image_path?: string;
   status: NewsStatus;
   published_at?: string;
   created_at: string;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Calendar as CalendarIcon, Users, Award, ShieldCheck, Download, ChevronRight } from 'lucide-react';
+import { ArrowRight, BookOpen, Calendar as CalendarIcon, Users, Award, ShieldCheck, Download, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/images';
 import { newsService } from '../../services/news.service';
 import { eventService } from '../../services/event.service';
 import { galleryService } from '../../services/gallery.service';
@@ -188,12 +189,21 @@ export const Home: React.FC = () => {
               to={`/actualites/${item.id}`}
               className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 flex flex-col"
             >
-              <div className="h-48 overflow-hidden relative">
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+              <div className="h-48 overflow-hidden relative bg-brand-900/5">
+                {(() => {
+                  const url = resolveImageUrl(item.image_url || (item as any).image_path);
+                  return url ? (
+                    <img
+                      src={url}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon className="w-10 h-10 text-slate-300" />
+                    </div>
+                  );
+                })()}
                 <span className="absolute top-4 left-4 bg-brand-600 text-white text-xs font-semibold px-3 py-1 rounded-full shadow">
                   Actualité
                 </span>

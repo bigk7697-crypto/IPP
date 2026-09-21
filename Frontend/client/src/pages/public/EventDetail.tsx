@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, MapPin, Clock } from 'lucide-react';
 import { eventService } from '../../services/event.service';
+import { resolveImageUrl } from '../../utils/images';
 import { EventItem } from '../../types';
 
 export const EventDetail: React.FC = () => {
@@ -62,11 +63,11 @@ export const EventDetail: React.FC = () => {
         </div>
       </div>
 
-      {event.image_path && (
+      {resolveImageUrl(event.image_path) ? (
         <div className="rounded-3xl overflow-hidden shadow-lg h-96">
-          <img src={event.image_path} alt={event.title} className="w-full h-full object-cover" />
+          <img src={resolveImageUrl(event.image_path)} alt={event.title} className="w-full h-full object-cover" />
         </div>
-      )}
+      ) : null}
 
       <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-6 text-lg">
         <p>{event.description}</p>

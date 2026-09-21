@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronRight, Calendar } from 'lucide-react';
+import { Search, ChevronRight, Calendar, Image as ImageIcon } from 'lucide-react';
 import { newsService } from '../../services/news.service';
+import { resolveImageUrl } from '../../utils/images';
 import { NewsItem } from '../../types';
 
 export const NewsList: React.FC = () => {
@@ -58,12 +59,21 @@ export const NewsList: React.FC = () => {
               to={`/actualites/${item.id}`}
               className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-200 flex flex-col"
             >
-              <div className="h-48 overflow-hidden relative">
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+              <div className="h-48 overflow-hidden relative bg-brand-900/5">
+                {(() => {
+                  const url = resolveImageUrl(item.image_url || item.image_path);
+                  return url ? (
+                    <img
+                      src={url}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ImageIcon className="w-10 h-10 text-slate-300" />
+                    </div>
+                  );
+                })()}
               </div>
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>

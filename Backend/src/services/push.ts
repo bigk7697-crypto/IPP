@@ -18,10 +18,10 @@ function ensureConfigured() {
 }
 
 // Récupère les user_id opt-in pour une catégorie (même règle que fanout_on_publish :
-// role=user + préférence activée, défaut true si pas de ligne).
+// rôles user+admin + préférence activée, défaut true si pas de ligne).
 export async function optedInUserIds(prefCol: string): Promise<string[]> {
   const svc = getServiceClient();
-  const { data, error } = await svc.from('profiles').select('id').eq('role', 'user');
+  const { data, error } = await svc.from('profiles').select('id').in('role', ['user', 'admin']);
   if (error || !data) return [];
   const ids = data.map((p: any) => p.id);
   if (!ids.length) return [];

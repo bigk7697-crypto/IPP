@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { eventService } from '../../services/event.service';
+import { resolveImageUrl } from '../../utils/images';
 import { EventItem } from '../../types';
 
 export const EventsList: React.FC = () => {
@@ -32,11 +33,11 @@ export const EventsList: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((evt) => (
             <div key={evt.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden">
-              {evt.image_path && (
+              {resolveImageUrl(evt.image_path) ? (
                 <div className="h-48 overflow-hidden">
-                  <img src={evt.image_path} alt={evt.title} className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(evt.image_path)} alt={evt.title} className="w-full h-full object-cover" />
                 </div>
-              )}
+              ) : null}
               <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                 <div className="space-y-3">
                   <span className="inline-block px-3 py-1 bg-brand-50 text-brand-700 text-xs font-semibold rounded-full">

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, FileSpreadsheet, Calendar, Award, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Bell, FileSpreadsheet, Calendar, Award, ChevronRight, CheckCircle2, Image as ImageIcon } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/images';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { newsService } from '../../services/news.service';
@@ -93,7 +94,16 @@ export const UserDashboard: React.FC = () => {
           <div className="space-y-4">
             {news.map(item => (
               <div key={item.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                <img src={item.image_url} alt={item.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                {(() => {
+                  const url = resolveImageUrl(item.image_url || (item as any).image_path);
+                  return url ? (
+                    <img src={url} alt={item.title} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl bg-slate-200 flex items-center justify-center shrink-0">
+                      <ImageIcon className="w-6 h-6 text-slate-400" />
+                    </div>
+                  );
+                })()}
                 <div className="space-y-1 flex-1">
                   <h3 className="font-bold text-sm text-slate-900 line-clamp-1">{item.title}</h3>
                   <p className="text-xs text-slate-500 line-clamp-1">{item.content}</p>
