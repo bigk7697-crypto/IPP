@@ -36,8 +36,13 @@ export function App() {
 
   useEffect(() => {
     initAuth();
-    fetchNotifications();
-    const id = setInterval(() => fetchNotifications(), 15000);
+    // Pas de polling notifications pour les visiteurs déconnectés
+    // (évite les 401 en boucle sur /connexion et /inscription).
+    const hasSession = () => !!localStorage.getItem('school_token');
+    if (hasSession()) fetchNotifications().catch(() => {});
+    const id = setInterval(() => {
+      if (hasSession()) fetchNotifications().catch(() => {});
+    }, 15000);
     return () => clearInterval(id);
   }, []);
 
