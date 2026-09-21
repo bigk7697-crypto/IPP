@@ -1,7 +1,24 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
-export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+// Un JWT Supabase est strictement ASCII (base64url). Un token corrompu
+// (caractère non-latin1) fait échouer fetch() avec :
+// "String contains non ISO-8859-1 code point". On le purge et on
+// continue sans Authorization : le backend répondra 401 + purge auto.
+const JWT_RE = /^[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+$/;
+
+function readToken(): string | null {
   const token = localStorage.getItem('school_token');
+  if (!token) return null;
+  if (!JWT_RE.test(token)) {
+    localStorage.removeItem('school_token');
+    localStorage.removeItem('school_user');
+    return null;
+  }
+  return token;
+}
+
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = readToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
@@ -10,10 +27,16 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (e: any) {
+    // Erreur réseau / construction Request (headers invalides, etc.)
+    throw new Error(e?.message || 'Erreur réseau. Vérifiez votre connexion.');
+  }
 
   const json = await response.json().catch(() => ({}));
 
