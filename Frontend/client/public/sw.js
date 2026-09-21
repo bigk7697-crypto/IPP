@@ -1,4 +1,4 @@
-const CACHE = 'ipp-client-v1';
+const CACHE = 'ipp-client-v2';
 const ASSETS = ['/IPP/', '/IPP/index.html', '/IPP/manifest.json'];
 
 self.addEventListener('install', (e) => {
@@ -11,6 +11,20 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
   // Ne jamais cacher les appels API / Supabase / push
   if (/\/api\/|supabase\.co|fcm\.googleapis|updates\.push\.services\.mozilla/.test(e.request.url)) return;
+  // Navigations HTML : network-first — sinon un vieux index.html en cache
+  // bloque les utilisateurs sur un ancien bundle après chaque déploiement.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
