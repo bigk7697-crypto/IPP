@@ -6,27 +6,12 @@ import { adminService } from '../services/admin.service';
 interface AdminSidebarProps {
   darkMode: boolean;
   setDarkMode: (val: boolean) => void;
+  unseen?: number;
 }
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ darkMode, setDarkMode }) => {
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ darkMode, setDarkMode, unseen = 0 }) => {
   const navigate = useNavigate();
-  const [unseenInscriptions, setUnseenInscriptions] = useState(0);
-
-  // Badge WhatsApp : nouveaux dossiers non ouverts (rafraîchi toutes les 30 s)
-  useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const c = await adminService.getInscriptionCounts();
-        if (alive) setUnseenInscriptions(c.unseen);
-      } catch {
-        // silencieux (token expiré => adminFetch redirige déjà vers /login)
-      }
-    };
-    load();
-    const id = setInterval(load, 30000);
-    return () => { alive = false; clearInterval(id); };
-  }, []);
+  const unseenInscriptions = unseen;
 
   const links = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },

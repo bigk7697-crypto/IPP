@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { AdminSidebar } from '../components/AdminSidebar';
+import { AdminBottomNav } from '../components/AdminBottomNav';
+import { adminService } from '../services/admin.service';
 import { supabase } from '../services/supabaseClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
@@ -10,7 +12,25 @@ export const AdminLayout: React.FC = () => {
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('admin_dark') === 'true';
   });
+  const [unseenInscriptions, setUnseenInscriptions] = useState(0);
   const navigate = useNavigate();
+
+  // Compteur dossiers non vus : partagé entre sidebar (desktop) et barre du bas (mobile).
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let alive = true;
+    const load = async () => {
+      try {
+        const c = await adminService.getInscriptionCounts();
+        if (alive) setUnseenInscriptions(c.unseen);
+      } catch {
+        // silencieux (token expiré => redirection login déjà gérée)
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => { alive = false; clearInterval(id); };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     localStorage.setItem('admin_dark', String(darkMode));
@@ -69,10 +89,13 @@ export const AdminLayout: React.FC = () => {
     <div className={`min-h-screen flex font-sans transition-colors duration-200 ${
       darkMode ? 'bg-slate-950 text-slate-100 dark' : 'bg-slate-50 text-slate-900'
     }`}>
-      <AdminSidebar darkMode={darkMode} setDarkMode={setDarkMode} />
-      <main className="flex-1 p-8 overflow-y-auto">
+      <div className="hidden md:block">
+        <AdminSidebar darkMode={darkMode} setDarkMode={setDarkMode} unseen={unseenInscriptions} />
+      </div>
+      <main className="flex-1 p-4 sm:p-8 overflow-y-auto pb-24 md:pb-8">
         <Outlet />
       </main>
+      <AdminBottomNav darkMode={darkMode} unseen={unseenInscriptions} />
     </div>
   );
 };
