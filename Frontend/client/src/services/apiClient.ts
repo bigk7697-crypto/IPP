@@ -20,9 +20,12 @@ function readToken(): string | null {
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const token = readToken();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
     ...(options?.headers as Record<string, string>),
   };
+  // Ne pas forcer Content-Type si FormData (le navigateur gère le boundary).
+  if (!(options?.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }

@@ -9,7 +9,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
-    "test": "node --test tests/sanity.test.js tests/utils.test.js tests/validators.test.js tests/search.test.js tests/integration.test.js tests/requireMfa.test.js tests/security.test.js tests/orientation.test.js",
+    "test": "node --test tests/sanity.test.js tests/utils.test.js tests/validators.test.js tests/search.test.js tests/integration.test.js tests/requireMfa.test.js tests/security.test.js tests/orientation.test.js tests/inscription.test.js",
     "test:live": "node --test tests/rls-live.test.js",
     "test:all": "node --test tests/sanity.test.js tests/utils.test.js tests/validators.test.js tests/search.test.js tests/integration.test.js tests/rls-live.test.js"
   },

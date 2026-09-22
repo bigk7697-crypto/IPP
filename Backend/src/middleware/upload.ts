@@ -11,3 +11,9 @@ function make(maxBytes: number) {
 export const uploadResult = make(LIMITS.resultMaxBytes);
 export const uploadDocument = make(LIMITS.documentMaxBytes);
 export const uploadImage = make(LIMITS.imageMaxBytes);
+
+// Dossiers d'inscription : jusqu'à 6 pièces de 5 Mo (mémoire, jamais sur disque)
+export const uploadInscription = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: LIMITS.inscriptionMaxBytes, files: 6 },
+});

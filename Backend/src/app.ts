@@ -17,6 +17,7 @@ import documentsRouter from './routes/documents.js';
 import galleryRouter from './routes/gallery.js';
 import settingsRouter from './routes/settings.js';
 import orientationRouter from './routes/orientation.js';
+import inscriptionsRouter from './routes/inscriptions.js';
 import adminNewsRouter from './routes/admin.news.js';
 import adminEventsRouter from './routes/admin.events.js';
 import adminClassesRouter from './routes/admin.classes.js';
@@ -26,6 +27,7 @@ import adminResultsRouter from './routes/admin.results.js';
 import adminSettingsRouter from './routes/admin.settings.js';
 import pushRouter from './routes/push.js';
 import adminOrientationRouter from './routes/admin.orientation.js';
+import adminInscriptionsRouter from './routes/admin.inscriptions.js';
 
 export function createApp() {
   const app = express();
@@ -54,6 +56,7 @@ export function createApp() {
   app.use('/api/notifications', notificationsRouter);
   app.use('/api/push', pushRouter);
   app.use('/api/orientation', orientationRouter);
+  app.use('/api/inscriptions', inscriptionsRouter);
 
   // Admin (auth + role=admin vérifiés côté serveur)
   app.use('/api/admin/news', adminNewsRouter);
@@ -64,6 +67,7 @@ export function createApp() {
   app.use('/api/admin/results', adminResultsRouter);
   app.use('/api/admin/settings', adminSettingsRouter);
   app.use('/api/admin/orientation', adminOrientationRouter);
+  app.use('/api/admin/inscriptions', adminInscriptionsRouter);
 
   app.use((_req, res) => {
     res.status(404).json({

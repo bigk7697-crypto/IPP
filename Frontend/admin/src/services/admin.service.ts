@@ -225,4 +225,20 @@ export const adminService = {
   async deleteUnanswered(id: string) {
     return adminFetch(`/admin/orientation/unanswered/${id}`, { method: 'DELETE' });
   },
+
+  // Inscriptions — dossiers des familles
+  async getApplications(status?: string) {
+    const q = status ? `?status=${status}` : '';
+    const data = await adminFetch<any[]>(`/admin/inscriptions${q}`);
+    return Array.isArray(data) ? data : [];
+  },
+  async getApplication(id: string) {
+    return adminFetch<any>(`/admin/inscriptions/${id}`);
+  },
+  async decideApplication(id: string, payload: { action: string; rendez_vous_at?: string; rendez_vous_message?: string; motif_refus?: string }) {
+    return adminFetch(`/admin/inscriptions/${id}/decide`, { method: 'PATCH', body: JSON.stringify(payload) });
+  },
+  async deleteApplication(id: string) {
+    return adminFetch(`/admin/inscriptions/${id}`, { method: 'DELETE' });
+  },
 };

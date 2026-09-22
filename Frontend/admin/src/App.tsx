@@ -11,6 +11,7 @@ import { AdminDocuments } from './pages/AdminDocuments';
 import { AdminGallery } from './pages/AdminGallery';
 import { AdminClasses } from './pages/AdminClasses';
 import { AdminOrientation } from './pages/AdminOrientation';
+import { AdminInscriptions } from './pages/AdminInscriptions';
 import { AdminSettings } from './pages/AdminSettings';
 
 export function App() {
@@ -30,6 +31,7 @@ export function App() {
           <Route path="/gallery" element={<AdminGallery />} />
           <Route path="/classes" element={<AdminClasses />} />
           <Route path="/orientation" element={<AdminOrientation />} />
+          <Route path="/inscriptions" element={<AdminInscriptions />} />
           <Route path="/settings" element={<AdminSettings />} />
         </Route>
       </Routes>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Newspaper, Calendar, FileSpreadsheet, FolderOpen, Image, Users, Settings, LogOut, ShieldCheck, Sun, Moon, Compass } from 'lucide-react';
+import { LayoutDashboard, Newspaper, Calendar, FileSpreadsheet, FolderOpen, Image, Users, Settings, LogOut, ShieldCheck, Sun, Moon, Compass, ClipboardList } from 'lucide-react';
 
 interface AdminSidebarProps {
   darkMode: boolean;
@@ -19,6 +19,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ darkMode, setDarkMod
     { name: 'Galerie', path: '/gallery', icon: Image },
     { name: 'Classes', path: '/classes', icon: Users },
     { name: 'Orientation', path: '/orientation', icon: Compass },
+    { name: 'Inscriptions', path: '/inscriptions', icon: ClipboardList },
     { name: 'Paramètres', path: '/settings', icon: Settings },
   ];
 

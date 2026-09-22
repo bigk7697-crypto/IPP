@@ -4,7 +4,11 @@ export const LIMITS = {
   resultMaxBytes: 15 * 1024 * 1024, // 15 Mo — PDF/XLSX
   documentMaxBytes: 15 * 1024 * 1024,
   imageMaxBytes: 5 * 1024 * 1024, // 5 Mo — news/gallery/events
+  inscriptionMaxBytes: 5 * 1024 * 1024, // 5 Mo par pièce — dossiers d'inscription
 };
+
+export const INSCRIPTION_MIME = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+export const INSCRIPTION_MAX_FILES = 6;
 
 export const MIME = {
   result: [
@@ -51,6 +55,11 @@ export function buildDocumentPath(category: string, originalName: string) {
 
 export function buildPublicImagePath(folder: 'news' | 'gallery' | 'events', originalName: string) {
   return `public-assets/${folder}/${randomUUID()}.${extOf(originalName, 'jpg')}`;
+}
+
+// inscription-dossiers/IPP-2026-ABC123/uuid.pdf — bucket privé, jamais d'URL publique
+export function buildInscriptionPath(reference: string, originalName: string) {
+  return `inscription-dossiers/${reference}/${randomUUID()}.${extOf(originalName, 'pdf')}`;
 }
 
 // "private-results/xxx/yyy.pdf" → { bucket, path }

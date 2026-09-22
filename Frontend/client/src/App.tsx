@@ -17,6 +17,8 @@ import { Calendar } from './pages/public/Calendar';
 import { Contact } from './pages/public/Contact';
 import { Orientation } from './pages/public/Orientation';
 import { OrientationWidget } from './components/OrientationWidget';
+import { PreInscription } from './pages/public/PreInscription';
+import { SuiviDossier } from './pages/public/SuiviDossier';
 
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
@@ -72,6 +74,8 @@ export function App() {
           <Route path="/calendrier" element={<Calendar />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/orientation" element={<Orientation />} />
+          <Route path="/pre-inscription" element={<PreInscription />} />
+          <Route path="/suivi-dossier" element={<SuiviDossier />} />
         </Route>
 
         {/* User Space Routes */}
