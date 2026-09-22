@@ -37,7 +37,7 @@ export const OrientationWidget: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-20 right-4 md:bottom-5 md:right-5 z-50 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[330px] max-w-[calc(100vw-2.5rem)] bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden">
           <div className="bg-brand-900 text-white px-5 py-4 flex items-center gap-2">
