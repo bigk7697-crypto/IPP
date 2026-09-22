@@ -156,8 +156,10 @@ router.patch('/:id/decide', async (req, res, next) => {
       .single();
     if (error) throw error;
     if (app.user_id) {
-      notifyApplicant(app.user_id, app.id, app.reference, parsed.data.action, data).catch((e) =>
-        console.warn('[inscriptions] notification échouée:', e?.message ?? e)
+      // La cloche est créée par le trigger DB (019) quel que soit le chemin.
+      // Ici : uniquement le push système, sans jamais bloquer la réponse.
+      pushDecisionToApplicant(app.user_id, app.id, parsed.data.action, data).catch((e) =>
+        console.warn('[inscriptions] push échoué:', e?.message ?? e)
       );
     }
     res.json({ success: true, data });
@@ -185,15 +187,16 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
-// Notifie le candidat en base (cloche) + push système si abonné et opt-in.
+// Push système au candidat si abonné et opt-in (la cloche est créée par
+// le trigger DB 019, quel que soit le chemin de la décision).
 // Ne bloque jamais la réponse admin : les erreurs sont loggées.
-async function notifyApplicant(
+async function pushDecisionToApplicant(
   userId: string,
   applicationId: string,
-  reference: string,
   action: string,
   row: any
 ): Promise<void> {
+  const reference = row.reference || '';
   const rdv = row.rendez_vous_at
     ? new Date(row.rendez_vous_at).toLocaleString('fr-FR', {
         weekday: 'long',
@@ -225,14 +228,6 @@ async function notifyApplicant(
   const t = texts[action];
   if (!t) return;
   const svc = getServiceClient();
-  await svc.from('notifications').insert({
-    user_id: userId,
-    type: 'system',
-    title: t.title,
-    message: t.body,
-    target_type: 'inscription',
-    target_id: applicationId,
-  });
   const { data: prefs } = await svc
     .from('notification_preferences')
     .select('system_enabled')
