@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Newspaper, Calendar, FileSpreadsheet, FolderOpen, Image, Users, Settings, LogOut, ShieldCheck, Sun, Moon, Compass, ClipboardList } from 'lucide-react';
+import { adminService } from '../services/admin.service';
 
 interface AdminSidebarProps {
   darkMode: boolean;
@@ -9,6 +10,23 @@ interface AdminSidebarProps {
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ darkMode, setDarkMode }) => {
   const navigate = useNavigate();
+  const [unseenInscriptions, setUnseenInscriptions] = useState(0);
+
+  // Badge WhatsApp : nouveaux dossiers non ouverts (rafraîchi toutes les 30 s)
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const c = await adminService.getInscriptionCounts();
+        if (alive) setUnseenInscriptions(c.unseen);
+      } catch {
+        // silencieux (token expiré => adminFetch redirige déjà vers /login)
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
+    return () => { alive = false; clearInterval(id); };
+  }, []);
 
   const links = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -60,7 +78,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ darkMode, setDarkMod
                 `}
               >
                 <Icon className={`w-5 h-5 ${darkMode ? 'text-brand-400' : 'text-brand-700'}`} />
-                <span>{link.name}</span>
+                <span className="flex-1">{link.name}</span>
+                {link.path === '/inscriptions' && unseenInscriptions > 0 && (
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                    {unseenInscriptions}
+                  </span>
+                )}
               </NavLink>
             );
           })}

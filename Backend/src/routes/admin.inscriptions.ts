@@ -49,7 +49,25 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+// GET /api/admin/inscriptions/counts — compteurs par statut + non-vus (badge sidebar)
+router.get('/counts', async (req, res, next) => {
+  try {
+    const svc = getServiceClient();
+    const { data, error } = await svc.from('inscription_applications').select('status,admin_seen');
+    if (error) throw error;
+    const counts: Record<string, number> = { soumis: 0, verifie: 0, convoque: 0, refuse: 0, admis: 0, unseen: 0 };
+    for (const r of data || []) {
+      if (counts[r.status] !== undefined) counts[r.status] += 1;
+      if (r.status === 'soumis' && !r.admin_seen) counts.unseen += 1;
+    }
+    res.json({ success: true, data: counts });
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /api/admin/inscriptions/:id — dossier + pièces (URLs signées 1 h)
+// Marque le dossier comme vu (badge WhatsApp décrémenté).
 router.get('/:id', async (req, res, next) => {
   try {
     const svc = getServiceClient();
@@ -57,6 +75,12 @@ router.get('/:id', async (req, res, next) => {
     if (error || !app) {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Dossier introuvable.' } });
       return;
+    }
+    if (!app.admin_seen) {
+      svc.from('inscription_applications').update({ admin_seen: true }).eq('id', app.id).then(
+        () => {},
+        () => {}
+      );
     }
     const { data: docs } = await svc
       .from('inscription_documents')

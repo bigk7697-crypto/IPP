@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Newspaper, Calendar, FileSpreadsheet, FolderOpen, Users, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Newspaper, Calendar, FileSpreadsheet, FolderOpen, Users, ShieldCheck, ClipboardList, ArrowRight } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 
 export const AdminDashboard: React.FC = () => {
   const [stats, setStats] = useState({ news: 0, events: 0, results: 0, documents: 0, classes: 0 });
+  const [pendingInscriptions, setPendingInscriptions] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
-      const [n, e, r, d, c] = await Promise.all([
+      const [n, e, r, d, c, ins] = await Promise.all([
         adminService.getNews(),
         adminService.getEvents(),
         adminService.getResults(),
         adminService.getDocuments(),
-        adminService.getClasses()
+        adminService.getClasses(),
+        adminService.getInscriptionCounts().catch(() => ({ soumis: 0 }))
       ]);
       setStats({
         news: n.length,
@@ -22,6 +25,7 @@ export const AdminDashboard: React.FC = () => {
         documents: d.length,
         classes: c.length
       });
+      setPendingInscriptions((ins as any).soumis || 0);
       setLoading(false);
     }
     load();
@@ -45,6 +49,19 @@ export const AdminDashboard: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {pendingInscriptions > 0 && (
+        <Link to="/inscriptions" className="flex items-center gap-4 bg-amber-500/10 border border-amber-400/40 rounded-3xl p-5 hover:bg-amber-500/20 transition-colors">
+          <div className="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center">
+            <ClipboardList className="w-6 h-6 text-amber-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-amber-300 font-extrabold text-lg">{pendingInscriptions} dossier{pendingInscriptions > 1 ? 's' : ''} en attente de vérification</p>
+            <p className="text-amber-200/70 text-xs">Cliquez pour ouvrir et vérifier</p>
+          </div>
+          <ArrowRight className="w-5 h-5 text-amber-300" />
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-2 shadow-sm">

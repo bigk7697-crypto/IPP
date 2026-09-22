@@ -241,4 +241,15 @@ export const adminService = {
   async deleteApplication(id: string) {
     return adminFetch(`/admin/inscriptions/${id}`, { method: 'DELETE' });
   },
+  async getInscriptionCounts(): Promise<{ soumis: number; verifie: number; convoque: number; refuse: number; admis: number; unseen: number }> {
+    const data = await adminFetch<any>('/admin/inscriptions/counts');
+    return {
+      soumis: data?.soumis || 0,
+      verifie: data?.verifie || 0,
+      convoque: data?.convoque || 0,
+      refuse: data?.refuse || 0,
+      admis: data?.admis || 0,
+      unseen: data?.unseen || 0,
+    };
+  },
 };
