@@ -5,8 +5,8 @@ import { useAuthStore } from '../../store/authStore';
 import { detectFetchTampering } from '../../utils/envCheck';
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState('jean.dupont@eleve.ipp.com');
-  const [password, setPassword] = useState('password123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [tampered, setTampered] = useState<string[]>([]);
