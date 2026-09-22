@@ -71,10 +71,20 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link
                   to="/espace/dashboard"
-                  className="flex items-center gap-2 pl-3 pr-4 py-2 bg-brand-50 border border-brand-100 rounded-xl text-brand-900 font-medium hover:bg-brand-100 transition-colors"
+                  title={`Mon espace (${user.first_name})`}
+                  className="block rounded-full ring-2 ring-brand-100 hover:ring-brand-400 transition"
                 >
-                  <User className="w-4 h-4" />
-                  <span>{user.first_name}</span>
+                  {user.avatar_url ? (
+                    <img
+                      src={user.avatar_url}
+                      alt={user.first_name}
+                      className="w-9 h-9 rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="w-9 h-9 rounded-full bg-brand-900 text-white flex items-center justify-center text-xs font-extrabold">
+                      {(user.first_name?.[0] || '') + (user.last_name?.[0] || '') || <User className="w-4 h-4" />}
+                    </span>
+                  )}
                 </Link>
                 <button
                   onClick={() => { logout(); navigate('/'); }}
