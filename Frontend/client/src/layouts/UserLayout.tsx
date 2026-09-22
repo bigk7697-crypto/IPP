@@ -4,7 +4,7 @@ import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
-import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings } from 'lucide-react';
+import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, ClipboardList, FileText } from 'lucide-react';
 
 export const UserLayout: React.FC = () => {
   const { user, isLoading } = useAuthStore();
@@ -28,6 +28,8 @@ export const UserLayout: React.FC = () => {
     { name: 'Résultats', path: '/espace/resultats', icon: FileSpreadsheet },
     { name: 'Notifs', path: '/espace/notifications', icon: Bell, badge: unread },
     { name: 'Calendrier', path: '/espace/calendrier', icon: Calendar },
+    { name: 'Inscription', path: '/espace/pre-inscription', icon: ClipboardList },
+    { name: 'Suivi', path: '/espace/suivi-dossier', icon: FileText },
     { name: 'Profil', path: '/espace/profil', icon: User },
     { name: 'Paramètres', path: '/espace/parametres', icon: Settings },
   ];

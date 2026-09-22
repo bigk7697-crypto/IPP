@@ -104,7 +104,7 @@ export const PreInscription: React.FC = () => {
           </button>
         </div>
         <p className="text-sm text-slate-500">Le secrétariat vérifie les pièces puis vous convoque. Vous recevrez une notification du site à chaque étape.</p>
-        <Link to="/suivi-dossier" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-900 hover:bg-brand-950 text-white text-sm font-bold rounded-2xl transition-colors">
+        <Link to="/espace/suivi-dossier" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-900 hover:bg-brand-950 text-white text-sm font-bold rounded-2xl transition-colors">
           Suivre mon dossier <ArrowRight className="w-4 h-4" />
         </Link>
       </div>

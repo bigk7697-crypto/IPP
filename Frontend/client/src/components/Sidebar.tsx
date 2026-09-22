@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, LogOut, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, LogOut, GraduationCap, ClipboardList, FileText } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 
@@ -16,6 +16,8 @@ export const Sidebar: React.FC<{ mobileOpen?: boolean; onClose?: () => void }> =
     { name: 'Résultats', path: '/espace/resultats', icon: FileSpreadsheet },
     { name: 'Notifications', path: '/espace/notifications', icon: Bell, badge: unreadCount },
     { name: 'Calendrier', path: '/espace/calendrier', icon: Calendar },
+    { name: 'Pré-inscription', path: '/espace/pre-inscription', icon: ClipboardList },
+    { name: 'Suivi dossier', path: '/espace/suivi-dossier', icon: FileText },
     { name: 'Profil', path: '/espace/profil', icon: User },
     { name: 'Paramètres', path: '/espace/parametres', icon: Settings },
   ];

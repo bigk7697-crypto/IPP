@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import { PublicLayout } from './layouts/PublicLayout';
 import { UserLayout } from './layouts/UserLayout';
@@ -74,8 +74,9 @@ export function App() {
           <Route path="/calendrier" element={<Calendar />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/orientation" element={<Orientation />} />
-          <Route path="/pre-inscription" element={<PreInscription />} />
-          <Route path="/suivi-dossier" element={<SuiviDossier />} />
+          {/* Anciennes URLs publiques → espace connecté (compte requis) */}
+          <Route path="/pre-inscription" element={<Navigate to="/espace/pre-inscription" replace />} />
+          <Route path="/suivi-dossier" element={<Navigate to="/espace/suivi-dossier" replace />} />
         </Route>
 
         {/* User Space Routes */}
@@ -86,6 +87,8 @@ export function App() {
           <Route path="/espace/calendrier" element={<Calendar />} />
           <Route path="/espace/profil" element={<Profile />} />
           <Route path="/espace/parametres" element={<Settings />} />
+          <Route path="/espace/pre-inscription" element={<PreInscription />} />
+          <Route path="/espace/suivi-dossier" element={<SuiviDossier />} />
         </Route>
       </Routes>
       <OrientationWidget />

@@ -216,7 +216,7 @@ async function notifyApplicant(
   await sendPushToUsers([userId], {
     title: `IPP — ${t.title}`,
     body: t.body,
-    url: '/IPP/suivi-dossier',
+    url: '/IPP/espace/suivi-dossier',
     tag: `inscription-${applicationId}`,
   });
 }
