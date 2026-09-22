@@ -118,27 +118,63 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<UserProfile | null> {
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) return null;
-
-    if (sessionData.session.access_token) {
-      localStorage.setItem('school_token', sessionData.session.access_token);
-    }
-
-    const me = await apiFetch<UserProfile>('/auth/me');
-    if (me) {
-      localStorage.setItem('school_user', JSON.stringify(me));
-      return me;
-    }
-
-    const stored = localStorage.getItem('school_user');
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch {
-        return null;
+    const cached = readCachedUser();
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      let session = sessionData.session;
+      if (!session) {
+        // Session absente/expirée au chargement : tentative de rafraîchissement
+        // explicite avant de conclure (évite les déconnexions intempestives).
+        try {
+          const { data } = await supabase.auth.refreshSession();
+          session = data.session;
+        } catch {
+          session = null;
+        }
       }
+      if (!session) {
+        // Irrécupérable ici : on garde le profil en cache s'il existe
+        // (tolérance panne réseau), sinon déconnecté.
+        return cached;
+      }
+
+      if (session.access_token) {
+        try {
+          localStorage.setItem('school_token', session.access_token);
+        } catch {
+          // ignore
+        }
+      }
+
+      try {
+        const me = await apiFetch<UserProfile>('/auth/me');
+        if (me) {
+          try {
+            localStorage.setItem('school_user', JSON.stringify(me));
+          } catch {
+            // ignore
+          }
+          return me;
+        }
+      } catch {
+        // Backend injoignable : profil en cache plutôt que déconnexion.
+        return cached;
+      }
+      return cached;
+    } catch {
+      return cached;
     }
-    return null;
   }
 };
+
+/** Profil + token mis en cache localement (null si incomplet/illisible). */
+function readCachedUser(): UserProfile | null {
+  try {
+    const token = localStorage.getItem('school_token');
+    const stored = localStorage.getItem('school_user');
+    if (!token || !stored) return null;
+    return JSON.parse(stored) as UserProfile;
+  } catch {
+    return null;
+  }
+}
