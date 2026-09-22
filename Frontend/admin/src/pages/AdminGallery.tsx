@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { GalleryAlbum } from '../types';
-import { supabase } from '../services/supabaseClient';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 export const AdminGallery: React.FC = () => {
@@ -30,11 +29,7 @@ export const AdminGallery: React.FC = () => {
     try {
       let cover_image_path: string | undefined = undefined;
       if (coverFile) {
-        const ext = coverFile.name.split('.').pop() || 'jpg';
-        const path = `gallery/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('public-assets').upload(path, coverFile, { upsert: false });
-        if (upErr) throw new Error('Upload couverture échoué: ' + upErr.message);
-        cover_image_path = `public-assets/${path}`;
+        cover_image_path = await adminService.uploadImage(coverFile, 'gallery');
       }
       await adminService.createAlbum({ title, description, cover_image_path } as any);
       setSuccess('Album créé !');

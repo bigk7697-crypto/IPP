@@ -226,6 +226,15 @@ export const adminService = {
     return adminFetch(`/admin/orientation/unanswered/${id}`, { method: 'DELETE' });
   },
 
+  // Upload d'image via le backend (MIME + magic-bytes vérifiés côté serveur).
+  async uploadImage(file: File, folder: 'news' | 'gallery' | 'events'): Promise<string> {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', folder);
+    const data = await adminFetch<{ path: string }>('/admin/uploads/image', { method: 'POST', body: fd });
+    return data.path;
+  },
+
   // Inscriptions — dossiers des familles
   async getApplications(status?: string) {
     const q = status ? `?status=${status}` : '';

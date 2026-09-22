@@ -3,7 +3,6 @@ import { Plus, Trash2, Upload } from 'lucide-react';
 import { adminService } from '../services/admin.service';
 import { NewsItem } from '../types';
 import { ConfirmModal } from '../components/ConfirmModal';
-import { supabase } from '../services/supabaseClient';
 
 export const AdminNews: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -30,11 +29,7 @@ export const AdminNews: React.FC = () => {
     try {
       let image_path: string | undefined = undefined;
       if (selectedImage) {
-        const ext = selectedImage.name.split('.').pop() || 'jpg';
-        const path = `news/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-        const { error: upErr } = await supabase.storage.from('public-assets').upload(path, selectedImage, { upsert: false });
-        if (upErr) throw new Error('Upload image échoué: ' + upErr.message);
-        image_path = `public-assets/${path}`;
+        image_path = await adminService.uploadImage(selectedImage, 'news');
       }
       await adminService.createNews({ title, content, status, image_path });
       setSuccess('Actualité publiée avec succès ! Visible côté client et notification envoyée.');

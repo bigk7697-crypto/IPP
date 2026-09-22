@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Secrets GitHub en priorité ; repli sur les valeurs prod publiques
+// (l'URL et la clé anon sont publiques par conception — jamais de service_role ici).
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://knmxosdfxxzjagqyhkcc.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtubXhvc2RmeHh6amFncXloa2NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3NjIzODIsImV4cCI6MjEwNTMzODM4Mn0.ntWtzeHibJRUpqWZIWREz6yk555xKrGPH28fu3acIKg';
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Erreur critique : VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont obligatoires en production.');

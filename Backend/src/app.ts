@@ -29,6 +29,7 @@ import pushRouter from './routes/push.js';
 import adminOrientationRouter from './routes/admin.orientation.js';
 import adminInscriptionsRouter from './routes/admin.inscriptions.js';
 import adminMaintenanceRouter from './routes/admin.maintenance.js';
+import adminUploadsRouter from './routes/admin.uploads.js';
 
 export function createApp() {
   const app = express();
@@ -70,6 +71,7 @@ export function createApp() {
   app.use('/api/admin/orientation', adminOrientationRouter);
   app.use('/api/admin/inscriptions', adminInscriptionsRouter);
   app.use('/api/admin/maintenance', adminMaintenanceRouter);
+  app.use('/api/admin/uploads', adminUploadsRouter);
 
   app.use((_req, res) => {
     res.status(404).json({
