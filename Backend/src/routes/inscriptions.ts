@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getServiceClient } from '../config/supabase.js';
+import { auth } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimit.js';
 import { uploadInscription } from '../middleware/upload.js';
 import { removeFile, uploadBuffer } from '../services/storage.js';
@@ -20,8 +21,8 @@ function makeReference(): string {
   return `IPP-${new Date().getFullYear()}-${s}`;
 }
 
-// POST /api/inscriptions/submit — dépôt public d'un dossier (multipart, 1..6 pièces)
-router.post('/submit', authLimiter, uploadInscription.array('pieces', INSCRIPTION_MAX_FILES), async (req, res, next) => {
+// POST /api/inscriptions/submit — dépôt d'un dossier (compte requis, 1..6 pièces)
+router.post('/submit', authLimiter, auth, uploadInscription.array('pieces', INSCRIPTION_MAX_FILES), async (req, res, next) => {
   const uploaded: string[] = [];
   try {
     const parsed = inscriptionSubmitSchema.safeParse(req.body);
@@ -84,6 +85,7 @@ router.post('/submit', authLimiter, uploadInscription.array('pieces', INSCRIPTIO
       .from('inscription_applications')
       .insert({
         reference,
+        user_id: req.user!.id,
         first_name: parsed.data.first_name,
         last_name: parsed.data.last_name,
         birth_date: parsed.data.birth_date || null,
@@ -123,8 +125,24 @@ router.post('/submit', authLimiter, uploadInscription.array('pieces', INSCRIPTIO
   }
 });
 
-// GET /api/inscriptions/track/:reference — suivi public (sans données sensibles)
-router.get('/track/:reference', async (req, res, next) => {
+// GET /api/inscriptions/mine — mes dossiers (compte requis)
+router.get('/mine', auth, async (req, res, next) => {
+  try {
+    const svc = getServiceClient();
+    const { data, error } = await svc
+      .from('inscription_applications')
+      .select('id,reference,first_name,niveau,filiere_slug,status,rendez_vous_at,rendez_vous_message,motif_refus,updated_at')
+      .eq('user_id', req.user!.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// GET /api/inscriptions/track/:reference — suivi de MES dossiers (sans données sensibles)
+router.get('/track/:reference', auth, async (req, res, next) => {
   try {
     const ref = String(req.params.reference || '').trim().toUpperCase().slice(0, 32);
     if (!/^IPP-\d{4}-[A-Z0-9]{6}$/.test(ref)) {
@@ -136,6 +154,7 @@ router.get('/track/:reference', async (req, res, next) => {
       .from('inscription_applications')
       .select('reference,first_name,niveau,filiere_slug,status,rendez_vous_at,rendez_vous_message,motif_refus,updated_at')
       .eq('reference', ref)
+      .eq('user_id', req.user!.id)
       .single();
     if (error || !data) {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Référence introuvable.' } });

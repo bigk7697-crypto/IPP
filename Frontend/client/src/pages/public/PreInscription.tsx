@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { UploadCloud, CheckCircle2, Copy, ArrowRight } from 'lucide-react';
+import { UploadCloud, CheckCircle2, Copy, ArrowRight, LogIn } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
 import { inscriptionService, NIVEAUX } from '../../services/inscription.service';
 import { orientationService, OrientationTopic } from '../../services/orientation.service';
 
@@ -8,6 +9,7 @@ const ACCEPT = '.pdf,.jpg,.jpeg,.png,.webp';
 const MAX_FILES = 6;
 
 export const PreInscription: React.FC = () => {
+  const { user, isLoading } = useAuthStore();
   const [filieres, setFilieres] = useState<OrientationTopic[]>([]);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -74,6 +76,20 @@ export const PreInscription: React.FC = () => {
     }
   };
 
+  if (!isLoading && !user) {
+    return (
+      <div className="max-w-xl mx-auto px-4 py-16 text-center space-y-5">
+        <LogIn className="w-12 h-12 text-brand-700 mx-auto" />
+        <h1 className="text-3xl font-extrabold text-slate-900">Connectez-vous pour déposer un dossier</h1>
+        <p className="text-slate-600 text-sm">La pré-inscription en ligne nécessite un compte : votre dossier y sera lié et vous recevrez une notification du site à chaque étape (vérification, convocation).</p>
+        <div className="flex justify-center gap-3">
+          <Link to="/connexion" className="px-6 py-3 bg-brand-900 hover:bg-brand-950 text-white text-sm font-bold rounded-2xl transition-colors">Se connecter</Link>
+          <Link to="/inscription" className="px-6 py-3 bg-white border border-slate-200 hover:border-brand-400 text-slate-800 text-sm font-bold rounded-2xl transition-colors">Créer un compte</Link>
+        </div>
+      </div>
+    );
+  }
+
   if (reference) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 space-y-6 text-center">
@@ -87,7 +103,7 @@ export const PreInscription: React.FC = () => {
             <Copy className="w-4 h-4" /> {copied ? 'Copié !' : 'Copier'}
           </button>
         </div>
-        <p className="text-sm text-slate-500">Le secrétariat vérifie les pièces puis vous convoque. Suivez l’avancement ici :</p>
+        <p className="text-sm text-slate-500">Le secrétariat vérifie les pièces puis vous convoque. Vous recevrez une notification du site à chaque étape.</p>
         <Link to="/suivi-dossier" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-900 hover:bg-brand-950 text-white text-sm font-bold rounded-2xl transition-colors">
           Suivre mon dossier <ArrowRight className="w-4 h-4" />
         </Link>

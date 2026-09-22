@@ -16,6 +16,7 @@ export const NIVEAUX: { value: Niveau; label: string }[] = [
 export type DossierStatus = 'soumis' | 'verifie' | 'convoque' | 'refuse' | 'admis';
 
 export interface DossierSuivi {
+  id?: string;
   reference: string;
   first_name: string;
   niveau: string;
@@ -48,5 +49,10 @@ export const inscriptionService = {
   async track(reference: string): Promise<DossierSuivi> {
     const ref = reference.trim().toUpperCase();
     return apiFetch<DossierSuivi>(`/inscriptions/track/${encodeURIComponent(ref)}`);
+  },
+
+  async mine(): Promise<DossierSuivi[]> {
+    const remote = await apiFetch<DossierSuivi[]>('/inscriptions/mine');
+    return Array.isArray(remote) ? remote : [];
   },
 };

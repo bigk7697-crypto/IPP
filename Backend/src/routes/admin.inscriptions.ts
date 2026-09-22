@@ -6,6 +6,7 @@ import { requireMfa } from '../middleware/requireMfa.js';
 import { adminLimiter } from '../middleware/rateLimit.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { fileNameOf, removeFile, signedUrl } from '../services/storage.js';
+import { sendPushToUsers } from '../services/push.js';
 import { ALLOWED_TRANSITIONS, decideSchema } from '../validators/inscription.js';
 
 const router = Router();
@@ -92,7 +93,7 @@ router.patch('/:id/decide', async (req, res, next) => {
     const svc = getServiceClient();
     const { data: app, error: getErr } = await svc
       .from('inscription_applications')
-      .select('id,status')
+      .select('id,status,reference,user_id')
       .eq('id', req.params.id)
       .single();
     if (getErr || !app) {
@@ -128,6 +129,11 @@ router.patch('/:id/decide', async (req, res, next) => {
       .select()
       .single();
     if (error) throw error;
+    if (app.user_id) {
+      notifyApplicant(app.user_id, app.id, app.reference, parsed.data.action, data).catch((e) =>
+        console.warn('[inscriptions] notification échouée:', e?.message ?? e)
+      );
+    }
     res.json({ success: true, data });
   } catch (e) {
     next(e);
@@ -152,5 +158,67 @@ router.delete('/:id', async (req, res, next) => {
     next(e);
   }
 });
+
+// Notifie le candidat en base (cloche) + push système si abonné et opt-in.
+// Ne bloque jamais la réponse admin : les erreurs sont loggées.
+async function notifyApplicant(
+  userId: string,
+  applicationId: string,
+  reference: string,
+  action: string,
+  row: any
+): Promise<void> {
+  const rdv = row.rendez_vous_at
+    ? new Date(row.rendez_vous_at).toLocaleString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '';
+  const texts: Record<string, { title: string; body: string }> = {
+    verifie: {
+      title: 'Dossier vérifié',
+      body: `Votre dossier ${reference} a été vérifié. Prochaine étape : la convocation.`,
+    },
+    convoque: {
+      title: 'Convocation — rendez-vous fixé',
+      body: `Rendez-vous ${rdv} (dossier ${reference}).${row.rendez_vous_message ? ' ' + row.rendez_vous_message : ''}`,
+    },
+    refuse: {
+      title: 'Dossier refusé',
+      body: `Votre dossier ${reference} a été refusé : ${row.motif_refus || 'contactez le secrétariat.'}`,
+    },
+    admis: {
+      title: 'Admis — bienvenue à IPP La Paix !',
+      body: `Votre dossier ${reference} est accepté. Présentez-vous au secrétariat pour finaliser.`,
+    },
+  };
+  const t = texts[action];
+  if (!t) return;
+  const svc = getServiceClient();
+  await svc.from('notifications').insert({
+    user_id: userId,
+    type: 'system',
+    title: t.title,
+    message: t.body,
+    target_type: 'inscription',
+    target_id: applicationId,
+  });
+  const { data: prefs } = await svc
+    .from('notification_preferences')
+    .select('system_enabled')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (prefs && prefs.system_enabled === false) return;
+  await sendPushToUsers([userId], {
+    title: `IPP — ${t.title}`,
+    body: t.body,
+    url: '/IPP/suivi-dossier',
+    tag: `inscription-${applicationId}`,
+  });
+}
 
 export default router;
