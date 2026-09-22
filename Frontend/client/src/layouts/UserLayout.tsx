@@ -1,11 +1,11 @@
 import React from 'react';
-import { Outlet, Navigate, NavLink } from 'react-router-dom';
+import { Outlet, Navigate, NavLink, Link } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { PushPrompt } from '../components/PushPrompt';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
-import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, ClipboardList, FileText } from 'lucide-react';
+import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, ClipboardList, FileText, GraduationCap, ArrowLeft } from 'lucide-react';
 
 export const UserLayout: React.FC = () => {
   const { user, isLoading } = useAuthStore();
@@ -39,6 +39,22 @@ export const UserLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-900">
       <div className="hidden md:block">
         <Navbar />
+      </div>
+      {/* Barre haute mobile : logo + retour au site (la navbar est cachée sur mobile) */}
+      <div className="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-brand-900 rounded-lg flex items-center justify-center text-white">
+            <GraduationCap className="w-4 h-4 text-amber-400" />
+          </div>
+          <span className="text-xs font-extrabold text-slate-900 tracking-tight">IPP LA PAIX</span>
+        </div>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1 text-xs font-bold text-brand-700 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-xl transition-colors"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Site</span>
+        </Link>
       </div>
       <div className="flex-1 flex">
         <Sidebar />

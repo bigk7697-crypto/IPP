@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, LogOut, GraduationCap, ClipboardList, FileText } from 'lucide-react';
+import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, LogOut, GraduationCap, ClipboardList, FileText, Home } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 
@@ -73,7 +73,14 @@ export const Sidebar: React.FC<{ mobileOpen?: boolean; onClose?: () => void }> =
         </nav>
       </div>
 
-      <div className="p-4 border-t border-slate-100">
+      <div className="p-4 border-t border-slate-100 space-y-1">
+        <button
+          onClick={() => handleNav('/')}
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+        >
+          <Home className="w-5 h-5" />
+          <span>Retour au site</span>
+        </button>
         <div className="mb-4 px-3 py-2 bg-slate-50 rounded-xl">
           <p className="text-xs text-slate-500">Connecté en tant que</p>
           <p className="text-sm font-semibold text-slate-900 truncate">{user?.first_name} {user?.last_name}</p>

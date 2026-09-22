@@ -24,8 +24,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     return { pendingEmailConfirmation };
   },
   logout: async () => {
-    await authService.logout();
+    // D'abord l'état local (instantané, même hors-ligne), puis le réseau.
+    // Évite les courses (401 → redirection intempestive) et les blocages.
     set({ user: null });
+    try {
+      localStorage.removeItem('school_user');
+      localStorage.removeItem('school_token');
+    } catch {
+      // stockage indisponible : on continue
+    }
+    try {
+      await authService.logout();
+    } catch {
+      // déjà déconnecté localement : rien à faire
+    }
   },
   initAuth: async () => {
     set({ isLoading: true });
