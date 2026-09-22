@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Settings as SettingsIcon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings as SettingsIcon, CheckCircle2, AlertCircle, UserX } from 'lucide-react';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:4000/api';
 
@@ -10,6 +11,35 @@ export const AdminSettings: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [purging, setPurging] = useState(false);
+  const [purgeResult, setPurgeResult] = useState('');
+
+  const [confirmPurge, setConfirmPurge] = useState(false);
+
+  const handlePurge = async () => {
+    setConfirmPurge(false);
+    setPurging(true);
+    setPurgeResult('');
+    setError('');
+    try {
+      const token = localStorage.getItem('admin_token') || localStorage.getItem('school_token');
+      const res = await fetch(`${API_BASE}/admin/maintenance/purge-inactive`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || 'Purge impossible');
+      const d = json.data || {};
+      setPurgeResult(`${d.deleted ?? 0} compte(s) supprimé(s) — ${d.checked ?? 0} vérifiés, ${d.skippedAdmins ?? 0} admin(s) épargné(s).`);
+    } catch (err: any) {
+      setError(err.message || 'Purge impossible');
+    } finally {
+      setPurging(false);
+    }
+  };
 
   useEffect(() => {
     async function load() {
@@ -125,6 +155,36 @@ export const AdminSettings: React.FC = () => {
           {saving ? 'Enregistrement...' : 'Enregistrer les paramètres'}
         </button>
       </form>
+
+      <div className="bg-white border border-slate-200 p-8 rounded-3xl space-y-4 shadow-sm">
+        <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <UserX className="w-5 h-5 text-brand-700" />
+          <span>Maintenance des comptes</span>
+        </h2>
+        <p className="text-sm text-slate-600">
+          Supprime les comptes <strong>inactifs depuis 60+ jours</strong> (jamais connectés depuis 60 jours).
+          Les <strong>admins ne sont jamais supprimés</strong>. Une purge automatique tourne aussi au démarrage du serveur.
+        </p>
+        {purgeResult && (
+          <div className="p-3 bg-emerald-50 text-emerald-700 text-xs rounded-xl border border-emerald-200">{purgeResult}</div>
+        )}
+        <button
+          type="button"
+          onClick={() => setConfirmPurge(true)}
+          disabled={purging}
+          className="px-6 py-3 bg-slate-900 hover:bg-slate-950 text-white font-semibold rounded-xl text-sm shadow-sm transition-all disabled:opacity-50"
+        >
+          {purging ? 'Purge en cours…' : 'Purger les comptes inactifs'}
+        </button>
+      </div>
+
+      <ConfirmModal
+        open={confirmPurge}
+        onCancel={() => setConfirmPurge(false)}
+        onConfirm={handlePurge}
+        title="Purger les comptes inactifs ?"
+        message="Les comptes sans connexion depuis 60+ jours seront définitivement supprimés (admins épargnés). Irréversible."
+      />
     </div>
   );
 };

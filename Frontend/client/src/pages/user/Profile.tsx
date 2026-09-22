@@ -1,12 +1,14 @@
 import React, { useState, useRef } from 'react';
-import { Mail, Calendar, Edit3, CheckCircle2, Upload, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Mail, Calendar, Edit3, CheckCircle2, Upload, Loader2, Trash2, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { supabase } from '../../services/supabaseClient';
 import { apiFetch } from '../../services/apiClient';
 import { UserProfile } from '../../types';
 
 export const Profile: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(user?.first_name || '');
   const [lastName, setLastName] = useState(user?.last_name || '');
@@ -15,7 +17,29 @@ export const Profile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showDanger, setShowDanger] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deletePassword) {
+      setError('Entrez votre mot de passe pour confirmer.');
+      return;
+    }
+    setDeleting(true);
+    setError(null);
+    try {
+      await apiFetch('/profile', { method: 'DELETE', body: JSON.stringify({ password: deletePassword }) });
+      await logout();
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Suppression impossible.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   // sync when user changes (e.g. after initAuth)
   React.useEffect(() => {
@@ -200,6 +224,57 @@ export const Profile: React.FC = () => {
               </p>
             </div>
           </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-3xl border border-red-200 shadow-sm p-8 space-y-4">
+        <h2 className="text-lg font-bold text-red-700 flex items-center gap-2">
+          <AlertTriangle className="w-5 h-5" />
+          <span>Zone dangereuse</span>
+        </h2>
+        {!showDanger ? (
+          <>
+            <p className="text-sm text-slate-600">Supprimer définitivement votre compte et toutes vos données (profil, dossiers de pré-inscription, notifications).</p>
+            <button
+              type="button"
+              onClick={() => setShowDanger(true)}
+              className="flex items-center gap-2 px-4 py-2.5 border border-red-300 text-red-700 text-xs font-bold rounded-xl hover:bg-red-50 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Supprimer mon compte…</span>
+            </button>
+          </>
+        ) : (
+          <form onSubmit={handleDeleteAccount} className="space-y-4">
+            <p className="text-sm text-slate-600">
+              <strong className="text-red-700">Irréversible.</strong> Votre compte, vos dossiers et vos notifications seront définitivement effacés.
+              Confirmez avec votre mot de passe :
+            </p>
+            <input
+              type="password"
+              required
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              placeholder="Votre mot de passe"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
+            <div className="flex gap-2">
+              <button
+                type="submit"
+                disabled={deleting}
+                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl text-sm transition-all disabled:opacity-60"
+              >
+                {deleting ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowDanger(false); setDeletePassword(''); }}
+                className="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
         )}
       </div>
     </div>
