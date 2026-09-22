@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FileSpreadsheet, Eye, ShieldCheck } from 'lucide-react';
 import { classesService } from '../../services/classes.service';
 import { resultService } from '../../services/result.service';
+import { useRealtime } from '../../hooks/useRealtime';
 import { SchoolClass, ResultItem } from '../../types';
 import { PDFViewerModal } from '../../components/PDFViewerModal';
 
@@ -11,6 +12,10 @@ export const Results: React.FC = () => {
   const [resultData, setResultData] = useState<{ result: ResultItem; downloadUrl: string; expiresIn: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [rtick, setRtick] = useState(0);
+
+  // Un PV publié apparaît sans rechargement.
+  useRealtime('results', undefined, () => setRtick((t) => t + 1), true);
 
   useEffect(() => {
     async function loadClasses() {
@@ -44,7 +49,7 @@ export const Results: React.FC = () => {
       }
     }
     loadResultForClass();
-  }, [selectedClassId]);
+  }, [selectedClassId, rtick]);
 
   const selectedClass = classes.find(c => c.id === selectedClassId);
   return (

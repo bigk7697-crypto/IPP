@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, FileSpreadsheet, Calendar, Award, ChevronRight, CheckCircle2, Image as ImageIcon } from 'lucide-react';
 import { resolveImageUrl } from '../../utils/images';
+import { useRealtime } from '../../hooks/useRealtime';
 import { useAuthStore } from '../../store/authStore';
 import { useNotificationStore } from '../../store/notificationStore';
 import { newsService } from '../../services/news.service';
@@ -14,6 +15,9 @@ export const UserDashboard: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rtick, setRtick] = useState(0);
+
+  useRealtime('news', undefined, () => setRtick((t) => t + 1), true);
 
   useEffect(() => {
     async function load() {
@@ -26,7 +30,7 @@ export const UserDashboard: React.FC = () => {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [rtick]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FileText, Download, Search, Filter } from 'lucide-react';
 import { documentService } from '../../services/document.service';
+import { useRealtime } from '../../hooks/useRealtime';
 import { DocumentItem } from '../../types';
 
 export const Documents: React.FC = () => {
@@ -9,6 +10,9 @@ export const Documents: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('Tous');
   const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [rtick, setRtick] = useState(0);
+
+  useRealtime('documents', undefined, () => setRtick((t) => t + 1), true);
 
   useEffect(() => {
     async function load() {
@@ -17,7 +21,7 @@ export const Documents: React.FC = () => {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [rtick]);
 
   const categories = ['Tous', 'Règlement', 'Administratif', 'Pédagogique', 'Formulaire'];
 

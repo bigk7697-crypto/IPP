@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import { Calendar, MapPin, Clock, ChevronRight } from 'lucide-react';
 import { eventService } from '../../services/event.service';
 import { resolveImageUrl } from '../../utils/images';
+import { useRealtime } from '../../hooks/useRealtime';
 import { EventItem } from '../../types';
 
 export const EventsList: React.FC = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rtick, setRtick] = useState(0);
+
+  useRealtime('events', undefined, () => setRtick((t) => t + 1), true);
 
   useEffect(() => {
     async function load() {
@@ -16,7 +20,7 @@ export const EventsList: React.FC = () => {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [rtick]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">

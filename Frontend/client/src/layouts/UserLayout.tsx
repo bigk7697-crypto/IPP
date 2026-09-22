@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet, Navigate, NavLink } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
+import { PushPrompt } from '../components/PushPrompt';
 import { useAuthStore } from '../store/authStore';
 import { useNotificationStore } from '../store/notificationStore';
 import { LayoutDashboard, FileSpreadsheet, Bell, Calendar, User, Settings, ClipboardList, FileText } from 'lucide-react';
@@ -42,6 +43,7 @@ export const UserLayout: React.FC = () => {
       <div className="flex-1 flex">
         <Sidebar />
         <main className="flex-1 p-4 sm:p-8 lg:p-10 overflow-y-auto pb-20 md:pb-10">
+          <PushPrompt />
           <Outlet />
         </main>
       </div>

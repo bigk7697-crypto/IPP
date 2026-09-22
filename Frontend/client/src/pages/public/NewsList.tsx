@@ -3,12 +3,17 @@ import { Link } from 'react-router-dom';
 import { Search, ChevronRight, Calendar, Image as ImageIcon } from 'lucide-react';
 import { newsService } from '../../services/news.service';
 import { resolveImageUrl } from '../../utils/images';
+import { useRealtime } from '../../hooks/useRealtime';
 import { NewsItem } from '../../types';
 
 export const NewsList: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [rtick, setRtick] = useState(0);
+
+  // Une actu publiée apparaît sans rechargement.
+  useRealtime('news', undefined, () => setRtick((t) => t + 1), true);
 
   useEffect(() => {
     async function load() {
@@ -17,7 +22,7 @@ export const NewsList: React.FC = () => {
       setLoading(false);
     }
     load();
-  }, []);
+  }, [rtick]);
 
   const filteredNews = news.filter(n =>
     n.title.toLowerCase().includes(search.toLowerCase()) ||

@@ -33,21 +33,34 @@ import { Settings } from './pages/user/Settings';
 
 import { useAuthStore } from './store/authStore';
 import { useNotificationStore } from './store/notificationStore';
+import { useRealtime } from './hooks/useRealtime';
 
 export function App() {
   const initAuth = useAuthStore(state => state.initAuth);
   const fetchNotifications = useNotificationStore(state => state.fetchNotifications);
+  const userId = useAuthStore(state => state.user?.id);
+
+  // Temps réel : la cloche se met à jour instantanément à la publication,
+  // sans rechargement. Le polling 15 s reste en secours (websocket bloqué).
+  useRealtime(
+    'notifications',
+    userId ? `user_id=eq.${userId}` : undefined,
+    () => { fetchNotifications().catch(() => {}); },
+    !!userId
+  );
 
   useEffect(() => {
     initAuth();
     // Pas de polling notifications pour les visiteurs déconnectés
     // (évite les 401 en boucle sur /connexion et /inscription).
     const hasSession = () => !!localStorage.getItem('school_token');
-    if (hasSession()) fetchNotifications().catch(() => {});
-    const id = setInterval(() => {
-      if (hasSession()) fetchNotifications().catch(() => {});
-    }, 15000);
-    return () => clearInterval(id);
+    const refresh = () => { if (hasSession()) fetchNotifications().catch(() => {}); };
+    refresh();
+    const id = setInterval(refresh, 15000);
+    // Retour d'onglet : rattrapage immédiat (si le poll a été gelé en arrière-plan).
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', onVisible); };
   }, []);
 
   const basename = import.meta.env.PROD ? '/IPP' : undefined;
