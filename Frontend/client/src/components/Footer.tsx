@@ -51,11 +51,11 @@ export const Footer: React.FC = () => {
             <h3 className="text-white font-semibold mb-4 text-sm uppercase tracking-wider">Coordonnées</h3>
             <div className="flex items-start gap-3 text-sm text-slate-400">
               <MapPin className="w-5 h-5 text-brand-500 shrink-0 mt-0.5" />
-              <span>Avenue de la Paix, Quartier Résidentiel, BP 4521</span>
+              <span>Rue BKS, en face de l'Auberge Bar Restaurant "LE PRINCE", B.P. 10085, Agoè-Nyivé – Lomé, Togo</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-slate-400">
               <Phone className="w-5 h-5 text-brand-500 shrink-0" />
-              <span>+228 22 40 50 60 / 90 10 20 30</span>
+              <span>+228 90 12 47 93 / 93 13 95 58</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-slate-400">
               <Mail className="w-5 h-5 text-brand-500 shrink-0" />

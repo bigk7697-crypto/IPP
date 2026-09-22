@@ -123,7 +123,7 @@ export const Home: React.FC = () => {
               <CalendarIcon className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-slate-900">25 Ans</p>
+              <p className="text-2xl font-bold text-slate-900">20 Ans</p>
               <p className="text-xs text-slate-500 font-medium uppercase">D'expérience</p>
             </div>
           </div>

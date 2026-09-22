@@ -46,11 +46,11 @@ export const Contact: React.FC = () => {
             <div className="space-y-4 text-sm text-slate-300">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-brand-400 shrink-0 mt-0.5" />
-                <span>Avenue de l'Indépendance, Quartier Résidentiel, BP 4521</span>
+                <span>Rue BKS, en face de l'Auberge Bar Restaurant "LE PRINCE", B.P. 10085, Agoè-Nyivé – Lomé, Togo</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-brand-400 shrink-0" />
-                <span>+228 22 40 50 60 / 90 10 20 30</span>
+                <span>+228 90 12 47 93 / 93 13 95 58</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-5 h-5 text-brand-400 shrink-0" />
