@@ -4,8 +4,10 @@ import assert from 'node:assert';
 // Inscription validators - import built files
 import {
   ALLOWED_TRANSITIONS,
+  canTransition,
   decideSchema,
   inscriptionSubmitSchema,
+  resolveTransition,
 } from '../dist/validators/inscription.js';
 
 test('inscriptionSubmitSchema valid', () => {
@@ -70,4 +72,24 @@ test('ALLOWED_TRANSITIONS refuse terminal', () => {
   assert.deepEqual(ALLOWED_TRANSITIONS.refuse, []);
   assert.deepEqual(ALLOWED_TRANSITIONS.admis, []);
   assert.ok(ALLOWED_TRANSITIONS.soumis.includes('verifie'));
+});
+
+test('resolveTransition mappe chaque action vers un statut (non-regression bug undefined)', () => {
+  assert.equal(resolveTransition('verifier'), 'verifie');
+  assert.equal(resolveTransition('convoquer'), 'convoque');
+  assert.equal(resolveTransition('refuser'), 'refuse');
+  assert.equal(resolveTransition('admettre'), 'admis');
+  assert.equal(resolveTransition('inconnu'), null);
+});
+
+test('canTransition respecte le workflow', () => {
+  assert.equal(canTransition('soumis', 'verifier'), true);
+  assert.equal(canTransition('soumis', 'admettre'), false);
+  assert.equal(canTransition('soumis', 'convoquer'), false);
+  assert.equal(canTransition('verifie', 'convoquer'), true);
+  assert.equal(canTransition('verifie', 'admettre'), true);
+  assert.equal(canTransition('convoque', 'admettre'), true);
+  assert.equal(canTransition('convoque', 'verifier'), false);
+  assert.equal(canTransition('refuse', 'admettre'), false);
+  assert.equal(canTransition('admis', 'refuser'), false);
 });

@@ -199,26 +199,41 @@ export const AdminInscriptions: React.FC = () => {
 
               <div className="border-t border-slate-100 pt-4 space-y-3">
                 <p className="text-xs font-bold uppercase text-slate-500">Décision</p>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => decide('verifier')} className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl">Vérifier</button>
+                {(selected.status === 'refuse' || selected.status === 'admis') && (
+                  <p className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+                    Dossier clos ({selected.status === 'refuse' ? 'refusé' : 'admis'}) — aucune action possible.
+                  </p>
+                )}
+                {selected.status === 'soumis' && (
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => decide('verifier')} className="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl">Vérifier</button>
+                  </div>
+                )}
+                {(selected.status === 'verifie' || selected.status === 'convoque') && (
                   <button onClick={() => decide('admettre')} className="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl inline-flex items-center gap-1"><BadgeCheck className="w-3.5 h-3.5" /> Admettre</button>
-                </div>
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <input type="datetime-local" value={rdvAt} onChange={(e) => setRdvAt(e.target.value)}
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                  <input value={rdvMsg} onChange={(e) => setRdvMsg(e.target.value)} placeholder="Message de convocation…"
-                    className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                </div>
-                <button onClick={() => decide('convoquer')} className="w-full px-4 py-2 bg-brand-900 text-white text-xs font-bold rounded-xl inline-flex items-center justify-center gap-1">
-                  <CalendarCheck className="w-3.5 h-3.5" /> Convoquer à cette date
-                </button>
-                <div className="flex gap-2">
-                  <input value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Motif du refus (visible par la famille)…"
-                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
-                  <button onClick={() => decide('refuser')} className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl inline-flex items-center gap-1">
-                    <XCircle className="w-3.5 h-3.5" /> Refuser
-                  </button>
-                </div>
+                )}
+                {selected.status === 'verifie' && (
+                  <>
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      <input type="datetime-local" value={rdvAt} onChange={(e) => setRdvAt(e.target.value)}
+                        className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                      <input value={rdvMsg} onChange={(e) => setRdvMsg(e.target.value)} placeholder="Message de convocation…"
+                        className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                    </div>
+                    <button onClick={() => decide('convoquer')} className="w-full px-4 py-2 bg-brand-900 text-white text-xs font-bold rounded-xl inline-flex items-center justify-center gap-1">
+                      <CalendarCheck className="w-3.5 h-3.5" /> Convoquer à cette date
+                    </button>
+                  </>
+                )}
+                {['soumis', 'verifie', 'convoque'].includes(selected.status) && (
+                  <div className="flex gap-2">
+                    <input value={motif} onChange={(e) => setMotif(e.target.value)} placeholder="Motif du refus (visible par la famille)…"
+                      className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs" />
+                    <button onClick={() => decide('refuser')} className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl inline-flex items-center gap-1">
+                      <XCircle className="w-3.5 h-3.5" /> Refuser
+                    </button>
+                  </div>
+                )}
               </div>
             </>
           )}

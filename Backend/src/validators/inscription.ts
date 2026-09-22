@@ -47,3 +47,24 @@ export const ALLOWED_TRANSITIONS: Record<string, string[]> = {
   refuse: [],
   admis: [],
 };
+
+// Action du formulaire -> statut cible (les deux vocabulaires diffèrent :
+// 'admettre' (verbe) vs 'admis' (statut) — ne pas confondre.
+export const ACTION_TO_STATUS: Record<string, string> = {
+  verifier: 'verifie',
+  convoquer: 'convoque',
+  refuser: 'refuse',
+  admettre: 'admis',
+};
+
+/** Résout le statut cible d'une décision, ou null si l'action est inconnue. */
+export function resolveTransition(action: string): string | null {
+  return ACTION_TO_STATUS[action] ?? null;
+}
+
+/** true si on peut passer de `current` à l'action `action`. */
+export function canTransition(current: string, action: string): boolean {
+  const target = resolveTransition(action);
+  if (!target) return false;
+  return (ALLOWED_TRANSITIONS[current] || []).includes(target);
+}

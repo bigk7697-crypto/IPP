@@ -7,16 +7,16 @@ import { adminLimiter } from '../middleware/rateLimit.js';
 import { paginationMeta, paginationParams } from '../utils/errors.js';
 import { fileNameOf, removeFile, signedUrl } from '../services/storage.js';
 import { sendPushToUsers } from '../services/push.js';
-import { ALLOWED_TRANSITIONS, decideSchema } from '../validators/inscription.js';
+import { ALLOWED_TRANSITIONS, canTransition, decideSchema, resolveTransition } from '../validators/inscription.js';
 
 const router = Router();
 router.use(auth, adminLimiter, requireAdmin, requireMfa);
 
-const STATUS_LABEL: Record<string, string> = {
-  verifie: 'verifie',
-  convoque: 'convoque',
-  refuse: 'refuse',
-  admis: 'admis',
+const ACTION_LABEL: Record<string, string> = {
+  verifier: 'vérification',
+  convoquer: 'convocation',
+  refuser: 'refus',
+  admettre: 'admission',
 };
 
 // GET /api/admin/inscriptions (?status=&q=) — q cherche référence, email ou nom
@@ -124,13 +124,15 @@ router.patch('/:id/decide', async (req, res, next) => {
       res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Dossier introuvable.' } });
       return;
     }
-    const nextStatus = STATUS_LABEL[parsed.data.action];
-    if (!ALLOWED_TRANSITIONS[app.status]?.includes(nextStatus)) {
+    const nextStatus = resolveTransition(parsed.data.action);
+    if (!nextStatus || !canTransition(app.status, parsed.data.action)) {
+      const actionLabel = ACTION_LABEL[parsed.data.action] || parsed.data.action;
+      const allowed = (ALLOWED_TRANSITIONS[app.status] || []).join(', ') || 'aucune (dossier clos)';
       res.status(422).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: `Transition impossible : ${app.status} → ${nextStatus}.`,
+          message: `Impossible : ${actionLabel} non autorisée depuis « ${app.status} ». Statuts suivants possibles : ${allowed}.`,
         },
       });
       return;
