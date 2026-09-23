@@ -7,6 +7,21 @@ import { supabase } from '../services/supabaseClient';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
+// Lecture locale du niveau d'assurance du JWT (comme requireMfa côté serveur).
+function isAal2(token: string): boolean {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return false;
+    const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const payload = JSON.parse(atob(b64));
+    if (payload.aal === 'aal2') return true;
+    const amr = payload.amr;
+    return Array.isArray(amr) && amr.some((m: any) => m?.method && m.method !== 'password');
+  } catch {
+    return false;
+  }
+}
+
 export const AdminLayout: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [darkMode, setDarkMode] = useState<boolean>(() => {
@@ -59,6 +74,14 @@ export const AdminLayout: React.FC = () => {
         const user = json.data || json;
 
         if (res.ok && user && user.role === 'admin') {
+          // Sécurité : la direction exige le MFA (aal2). Une session admin
+          // obtenue via le site public (aal1, sans TOTP) est renvoyée au login
+          // au lieu d'afficher un portail vide (toutes les API répondent 403).
+          if (!isAal2(token)) {
+            setIsAuthenticated(false);
+            navigate('/login');
+            return;
+          }
           setIsAuthenticated(true);
         } else {
           setIsAuthenticated(false);

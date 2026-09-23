@@ -9,22 +9,26 @@ export const AdminDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Chaque compteur est indépendant : un endpoint en échec n'efface plus tout.
+    async function count<T>(p: Promise<T[]>, pick: (d: T[]) => number): Promise<number> {
+      try {
+        const d = await p;
+        return pick(Array.isArray(d) ? d : []);
+      } catch (e) {
+        console.error(e);
+        return 0;
+      }
+    }
     async function load() {
       const [n, e, r, d, c, ins] = await Promise.all([
-        adminService.getNews(),
-        adminService.getEvents(),
-        adminService.getResults(),
-        adminService.getDocuments(),
-        adminService.getClasses(),
-        adminService.getInscriptionCounts().catch(() => ({ soumis: 0 }))
+        count(adminService.getNews(), (x) => x.length),
+        count(adminService.getEvents(), (x) => x.length),
+        count(adminService.getResults(), (x) => x.length),
+        count(adminService.getDocuments(), (x) => x.length),
+        count(adminService.getClasses(), (x) => x.length),
+        adminService.getInscriptionCounts().catch(() => ({ soumis: 0 })),
       ]);
-      setStats({
-        news: n.length,
-        events: e.length,
-        results: r.length,
-        documents: d.length,
-        classes: c.length
-      });
+      setStats({ news: n, events: e, results: r, documents: d, classes: c });
       setPendingInscriptions((ins as any).soumis || 0);
       setLoading(false);
     }
