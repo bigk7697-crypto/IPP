@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Navigation, ExternalLink, Clock } from 'lucide-react';
+
+const IPP_LAT = 6.2208914;
+const IPP_LNG = 1.1994968;
+const MAPS_EMBED = `https://www.google.com/maps?q=${IPP_LAT},${IPP_LNG}&z=18&output=embed`;
+const MAPS_PLACE = 'https://www.google.com/maps/place/INSTITUT+POLYTECHNIQUE+%22LA+PAIX%22/@6.2209306,1.1991094,115m';
+const MAPS_DIRECTIONS = `https://www.google.com/maps/dir/?api=1&destination=${IPP_LAT},${IPP_LNG}`;
 
 export const Contact: React.FC = () => {
   const [name, setName] = useState('');
@@ -133,6 +139,80 @@ export const Contact: React.FC = () => {
               </button>
             </form>
           )}
+        </div>
+      </div>
+
+      {/* Nous trouver */}
+      <div className="space-y-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2">
+          <span className="px-3.5 py-1.5 rounded-full bg-brand-50 text-brand-900 text-xs font-bold tracking-wide uppercase border border-brand-100">
+            Nous trouver
+          </span>
+          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Venez nous rencontrer</h2>
+          <p className="text-slate-600">Rue BKS, en face de l'Auberge Bar Restaurant « LE PRINCE », Agoè-Nyivé – Lomé.</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
+          <div className="lg:col-span-2 bg-slate-900 text-white rounded-3xl p-8 flex flex-col justify-between gap-8">
+            <div className="space-y-5 text-sm">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-white">Adresse</p>
+                  <p className="text-slate-300">Rue BKS, en face de l'Auberge Bar Restaurant « LE PRINCE », B.P. 10085, Agoè-Nyivé – Lomé, Togo</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Phone className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-white">Téléphones</p>
+                  <p>
+                    <a href="tel:+22890124793" className="text-slate-300 hover:text-white transition-colors">+228 90 12 47 93</a>
+                    <span className="text-slate-500"> / </span>
+                    <a href="tel:+22893139558" className="text-slate-300 hover:text-white transition-colors">93 13 95 58</a>
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Clock className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-white">Horaires</p>
+                  <p className="text-slate-300">Lun – Ven : 07h30 – 17h30 • Sam : 08h00 – 12h00</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
+              <a
+                href={MAPS_DIRECTIONS}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-amber-400 hover:bg-amber-300 text-brand-950 text-sm font-bold rounded-2xl transition-colors"
+              >
+                <Navigation className="w-4 h-4" />
+                <span>Itinéraire</span>
+              </a>
+              <a
+                href={MAPS_PLACE}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-2xl border border-white/20 transition-colors"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Voir sur Google Maps</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="lg:col-span-3 rounded-3xl overflow-hidden border border-slate-200 shadow-sm min-h-[380px]">
+            <iframe
+              title="Carte — IPP La Paix, Agoè-Nyivé"
+              src={MAPS_EMBED}
+              className="w-full h-full min-h-[380px] grayscale-[15%]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
         </div>
       </div>
     </div>
