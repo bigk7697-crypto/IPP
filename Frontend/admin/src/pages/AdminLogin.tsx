@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Lock, Mail, LogIn, Smartphone } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
+
+// La vérification MFA lit la session dans le stockage local, qui peut
+// disparaître entre le login et la saisie du code (autre onglet, race de
+// refresh). On garde donc les tokens en mémoire et on restaure la session
+// juste avant chaque appel MFA : la vérification ne dépend plus du stockage.
+function toFriendlyMfaError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err ?? '');
+  if (/missing sub claim|Auth session missing|session missing/i.test(msg)) {
+    return 'Session expirée. Reconnectez-vous avec email et mot de passe.';
+  }
+  if (/invalid.*(code|token|otp)|expired/i.test(msg)) {
+    return 'Code invalide ou expiré. Vérifiez l’heure de votre téléphone et réessayez.';
+  }
+  return msg || 'Vérification impossible. Réessayez.';
+}
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ipp-2mdf.onrender.com/api';
 
@@ -18,6 +33,21 @@ export const AdminLogin: React.FC = () => {
   const [secret, setSecret] = useState('');
   const [code, setCode] = useState('');
   const navigate = useNavigate();
+  const sessionRef = useRef<{ access_token: string; refresh_token: string } | null>(null);
+
+  // Remet la session en place depuis la mémoire (immuable aux aléas du stockage).
+  async function restoreSession(): Promise<boolean> {
+    const s = sessionRef.current;
+    if (!s) return false;
+    try {
+      const { data, error } = await supabase.auth.setSession(s);
+      if (error || !data.session) return false;
+      sessionRef.current = { access_token: data.session.access_token, refresh_token: data.session.refresh_token };
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   async function finishLogin(token: string) {
     const res = await fetch(`${API_BASE}/auth/me`, {
@@ -39,6 +69,7 @@ export const AdminLogin: React.FC = () => {
 
   async function afterSignIn() {
     // Le backend exige aal2 (MFA vérifié) sur /api/admin/*
+    await restoreSession();
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal.currentLevel === 'aal2') {
       const { data: { session } } = await supabase.auth.getSession();
@@ -77,6 +108,10 @@ export const AdminLogin: React.FC = () => {
       // ou un compte sans rôle admin (voir finishLogin).
       // Les erreurs MFA/enroll de afterSignIn gardent leur message technique.
       if (authErr || !authData.session?.access_token) throw new Error('Identifiants invalides.');
+      sessionRef.current = {
+        access_token: authData.session.access_token,
+        refresh_token: authData.session.refresh_token,
+      };
       await afterSignIn();
     } catch (err: any) {
       setError(err.message || 'Identifiants invalides.');
@@ -90,12 +125,19 @@ export const AdminLogin: React.FC = () => {
     setLoading(true);
     setError('');
     try {
+      // Restaure la session depuis la mémoire si le stockage l'a perdue.
+      await restoreSession();
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        setStep('login');
+        throw new Error('Session expirée. Reconnectez-vous avec email et mot de passe.');
+      }
       const { data, error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
       if (error) throw error;
       if (!data?.access_token) throw new Error('Vérification échouée');
       await finishLogin(data.access_token);
     } catch (err: any) {
-      setError(err.message || 'Code invalide. Réessayez.');
+      setError(toFriendlyMfaError(err));
     } finally {
       setLoading(false);
     }
